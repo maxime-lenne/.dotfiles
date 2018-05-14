@@ -11,7 +11,6 @@ echo "------------------------------"
 echo "Installing Git and bash completion."
 #install git
 brew install git
-
 #bash completion
 brew install bash-completion
 
@@ -24,6 +23,9 @@ echo "Installing Java, NPM, RBENV, ruby"
 #install languages
 brew cask install java
 brew install node
+# https://rvm.io
+# rvm for the rubiess
+curl -L https://get.rvm.io | bash -s stable --ruby
 npm install -g coffee-script
 #npm install -g grunt-cli
 npm install -g jshint
@@ -31,7 +33,7 @@ npm install -g less
 gem install jekyll
 
 brew install heroku/brew/heroku
-
+sudo gem install lolcommits
 
 echo "------------------------------"
 echo "Installing Daveloper apps : hyper term, atom..."
@@ -70,6 +72,7 @@ brew install redis
 #image optim
 brew install imagemagick
 brew install advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant
+brew install ffmpeg
 
 # API blueprint
 # #https://github.com/apiaryio/api-blueprint-sublime-plugin
@@ -80,10 +83,6 @@ brew install --HEAD \
 # https://github.com/jamiew/git-friendly
 # the `push` command which copies the github compare URL to my clipboard is heaven
 #sudo bash < <( curl https://raw.github.com/jamiew/git-friendly/master/install.sh)
-
-# https://rvm.io
-# rvm for the rubiess
-curl -L https://get.rvm.io | bash -s stable --ruby
 
 # https://github.com/isaacs/nave
 # needs npm, obviously.
