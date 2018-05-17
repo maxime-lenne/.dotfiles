@@ -8,38 +8,62 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 sudo chown -R $USER:admin /usr/local
 
 echo "------------------------------"
-echo "Installing Git and bash completion."
-#install git
-brew install git
-#bash completion
-brew install bash-completion
-
-echo "------------------------------"
 echo "Installing Xcode Command Line Tools."
 xcode-select --install
 
+function install_or_upgrade { brew ls | grep $1 > /dev/null; if (($? == 0)); then brew upgrade $1; else brew install $1; fi }
+
+install_or_upgrade "openssl"
+install_or_upgrade "libxml2"
+install_or_upgrade "libxslt"
+install_or_upgrade "libiconv"
+install_or_upgrade "yarn"
+
 echo "------------------------------"
-echo "Installing Java, NPM, RBENV, ruby"
+echo "Installing Java, NPM, rvm, ruby, rails, elixir"
 #install languages
 brew cask install java
 brew install node
-# https://rvm.io
-# rvm for the rubiess
-curl -L https://get.rvm.io | bash -s stable --ruby
+
 npm install -g coffee-script
 #npm install -g grunt-cli
 npm install -g jshint
 npm install -g less
 gem install jekyll
 
+# https://rvm.io
+# rvm for the rubiess
+curl -L https://get.rvm.io | bash -s stable --ruby
+gem install bundler pry hub
+gem install yarn
+gem install rails
+
+#elixir
+brew install elixir
+mix local.hex
+mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_new.ez
+
+echo "------------------------------"
+echo "Installing developer tools : Git and bash completion."
+#install git
+brew install git
+#bash completion
+brew install bash-completion
 brew install heroku/brew/heroku
 sudo gem install lolcommits
+
+#image optim
+brew install imagemagick
+brew install advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant
+brew install ffmpeg
 
 echo "------------------------------"
 echo "Installing Daveloper apps : hyper term, atom..."
 brew cask install hyper
 hyper i hyper-electron-highlighter
+
 brew cask install --appdir="/Applications" atom
+
 # install sublime 3
 # and package control :
 # https://packagecontrol.io/installation#st3
@@ -69,10 +93,6 @@ brew install redis
 #brew install elasticsearch
 
 
-#image optim
-brew install imagemagick
-brew install advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant
-brew install ffmpeg
 
 # API blueprint
 # #https://github.com/apiaryio/api-blueprint-sublime-plugin

@@ -66,3 +66,6 @@ alias postgresql_server_start='launchctl load ~/Library/LaunchAgents/homebrew.mx
 alias postgresql_server_stop='launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist'
 alias redis_start='launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist'
 alias redis_stop='launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.redis.plist'
+
+# Reload the shell (i.e. invoke as a login shell)
+alias reload="exec $SHELL -l"
