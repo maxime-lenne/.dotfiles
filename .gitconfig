@@ -7,3 +7,4 @@
 [core]
 	# Use custom `.gitignore` and `.gitattributes`
 	excludesfile = ~/.gitignore_global
+	editor = '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -n -w
