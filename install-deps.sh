@@ -47,10 +47,15 @@ echo "------------------------------"
 echo "Installing developer tools : Git and bash completion."
 #install git
 brew install git
+brew install hub
+
 #bash completion
 brew install bash-completion
 brew install heroku/brew/heroku
+
 sudo gem install lolcommits
+
+brew install hivemind
 
 #image optim
 brew install imagemagick
@@ -63,6 +68,7 @@ brew cask install hyper
 hyper i hyper-electron-highlighter
 
 brew cask install --appdir="/Applications" atom
+apm install file-icons
 
 # install sublime 3
 # and package control :
