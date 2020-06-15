@@ -23,7 +23,7 @@ echo "------------------------------"
 echo "Installing Java, NPM, rvm, ruby, rails, elixir"
 #install languages
 brew cask install java
-brew install node
+install_or_upgrade  "node"
 
 npm install -g coffee-script
 #npm install -g grunt-cli
@@ -39,19 +39,19 @@ gem install yarn
 gem install rails
 
 # elixir
-brew install elixir
+install_or_upgrade "elixir"
 mix local.hex
 mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_new.ez
 
 echo "------------------------------"
 echo "Installing developer tools : Git and bash completion."
 # install git
-brew install git
-brew install hub
+install_or_upgrade "git"
+install_or_upgrade "hub"
 
 # bash completion
-brew install bash-completion
-brew install heroku/brew/heroku
+install_or_upgrade "bash-completion"
+install_or_upgrade "heroku/brew/heroku"
 
 # fonts
 brew tap homebrew/cask-fonts
@@ -60,20 +60,20 @@ brew cask install font-hack-nerd-font
 #Ho my zsh
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-gem update colorls
+gem install colorls
 
 gem install lolcommits
 gem install lolcommits-slack
 
-brew install hivemind
+install_or_upgrade "hivemind"
 
 #image optim
-brew install imagemagick
-brew install advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant
-brew install ffmpeg
+install_or_upgrade "imagemagick"
+install_or_upgrade "advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant"
+install_or_upgrade "ffmpeg"
 
 # cast and gif from terminal
-brew install asciinema
+install_or_upgrade "asciinema"
 npm install --global asciicast2gif
 
 echo "------------------------------"
@@ -107,18 +107,18 @@ brew cask install --appdir="/Applications" evernote
 echo "------------------------------"
 echo "Installing database/datastore: postgresql, mongoDB, Redis"
 #brew install mysql
-brew install postgresql
-brew install mongo
-brew install redis
-brew install elasticsearch
+install_or_upgrade "postgresql"
+install_or_upgrade "mongo"
+install_or_upgrade "redis"
+install_or_upgrade "elasticsearch"
 
 
 
 # API blueprint
 # #https://github.com/apiaryio/api-blueprint-sublime-plugin
 # Drafter command line tool
-brew install --HEAD \
-  https://raw.github.com/apiaryio/drafter/master/tools/homebrew/drafter.rb
+# brew install --HEAD \
+#   https://raw.github.com/apiaryio/drafter/master/tools/homebrew/drafter.rb
 
 # https://github.com/jamiew/git-friendly
 # the `push` command which copies the github compare URL to my clipboard is heaven
