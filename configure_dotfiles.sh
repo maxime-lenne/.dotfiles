@@ -10,5 +10,3 @@ for name in .{aliases,bash_profile,bash_prompt,bashrc,exports,functions,gitconfi
   echo "-----> Symlinking $source to $target"
   ln -s "$source" "$target"
 done
-
-ln -s .dotfiles/custom .oh-my-zsh/custom
