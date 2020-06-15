@@ -20,14 +20,14 @@ export PATH=$PATH:$JAVA_HOME/bin:$PATH
 #Ajout des bin Homebrew dans le PATH
 export PATH=/usr/local:/usr/local/bin:/usr/local/sbin:$PATH
 
-# init rvm (/!\ in the bottom of bash_profile)
-
-# Load RVM into a shell session *as a function*
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-
 export GPG_TTY=$(tty)
 
 ### Added by the Heroku Toolbelt
 export PATH="$PATH:/usr/local/heroku/bin"
 export PATH="$PATH:/usr/local/bin:/usr/local/sbin:/opt/local/bin:/opt/local/sbin"
+
+# init rvm (/!\ in the bottom of bash_profile)
+
+# Load RVM into a shell session *as a function*
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting

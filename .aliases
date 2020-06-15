@@ -72,3 +72,5 @@ alias redis_stop='launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.redis.pl
 alias reload="exec $SHELL -l"
 
 alias stt="sublime"
+
+alias lc='colorls -lA --sd'

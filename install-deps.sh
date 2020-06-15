@@ -38,22 +38,32 @@ gem install bundler pry hub
 gem install yarn
 gem install rails
 
-#elixir
+# elixir
 brew install elixir
 mix local.hex
 mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_new.ez
 
 echo "------------------------------"
 echo "Installing developer tools : Git and bash completion."
-#install git
+# install git
 brew install git
 brew install hub
 
-#bash completion
+# bash completion
 brew install bash-completion
 brew install heroku/brew/heroku
 
-sudo gem install lolcommits
+# fonts
+brew tap homebrew/cask-fonts
+brew cask install font-hack-nerd-font
+
+#Ho my zsh
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+gem update colorls
+
+gem install lolcommits
+gem install lolcommits-slack
 
 brew install hivemind
 
@@ -61,6 +71,10 @@ brew install hivemind
 brew install imagemagick
 brew install advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant
 brew install ffmpeg
+
+# cast and gif from terminal
+brew install asciinema
+npm install --global asciicast2gif
 
 echo "------------------------------"
 echo "Installing Daveloper apps : hyper term, atom..."
@@ -96,7 +110,7 @@ echo "Installing database/datastore: postgresql, mongoDB, Redis"
 brew install postgresql
 brew install mongo
 brew install redis
-#brew install elasticsearch
+brew install elasticsearch
 
 
 
