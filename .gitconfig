@@ -1,7 +1,3 @@
-[user]
-	email = maxime.lenne@gmail.com
-	name = Maxime Lenne
-	signingkey = 733F8CD11BA8E377D274E1972C9D9969821F87D7
 [commit]
 	gpgsign = true
 [core]
@@ -14,3 +10,9 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[pull]
+	rebase = true
+[gpg]
+	program = /usr/local/bin/gpg
+[help]
+  autocorrect = 1

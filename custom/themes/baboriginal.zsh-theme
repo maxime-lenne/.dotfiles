@@ -8,7 +8,7 @@ function user_info {
 }
 
 function pwd_info {
-  CURRENT_PATH="$(pwd | sed -e 's,^$HOME,~,' )"
+  CURRENT_PATH=`pwd | sed -e "s,^$HOME,~," `
   echo " %B%{%F{166}%}$CURRENT_PATH%f%b"
 }
 function git_info() {
@@ -30,7 +30,7 @@ function env_info {
 
 # $(rvm_prompt_info)
 PROMPT='$(user_info)$(pwd_info) $(git_provider_promp_info)$(git_info)$(env_info)%{$reset_color%} :
-🚀  %{$reset_color%}'
+🚀 '
 #End line
 RPS1=""
 

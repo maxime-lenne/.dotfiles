@@ -3,6 +3,9 @@
 #install homebrew
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
+function install_or_upgrade { brew ls | grep $1 > /dev/null; if (($? == 0)); then brew upgrade $1; else brew install $1; fi }
+
+
 #echo 'export PATH="/usr/local/sbin:$PATH"' >> ~/.bash_profile
 
 sudo chown -R $USER:admin /usr/local
@@ -11,19 +14,19 @@ echo "------------------------------"
 echo "Installing Xcode Command Line Tools."
 xcode-select --install
 
-function install_or_upgrade { brew ls | grep $1 > /dev/null; if (($? == 0)); then brew upgrade $1; else brew install $1; fi }
 
 install_or_upgrade "openssl"
 install_or_upgrade "libxml2"
 install_or_upgrade "libxslt"
 install_or_upgrade "libiconv"
-install_or_upgrade "yarn"
 
 echo "------------------------------"
 echo "Installing Java, NPM, rvm, ruby, rails, elixir"
 #install languages
 brew cask install java
-install_or_upgrade  "node"
+# install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+install_or_upgrade "yarn"
 
 npm install -g coffee-script
 #npm install -g grunt-cli
@@ -35,7 +38,7 @@ gem install jekyll
 # rvm for the rubiess
 curl -L https://get.rvm.io | bash -s stable --ruby
 gem install bundler pry hub
-gem install yarn
+# gem install yarn
 gem install rails
 
 # elixir
@@ -83,6 +86,8 @@ hyper i hyper-electron-highlighter
 
 brew cask install --appdir="/Applications" atom
 apm install file-icons
+
+brew cask install postman
 
 # install sublime 3
 # and package control :
