@@ -38,7 +38,7 @@ gem install jekyll
 # rvm for the rubiess
 curl -L https://get.rvm.io | bash -s stable --ruby
 gem install bundler pry hub
-# gem install yarn
+
 gem install rails
 
 # elixir
@@ -83,11 +83,11 @@ echo "------------------------------"
 echo "Installing Daveloper apps : hyper term, atom..."
 brew cask install hyper
 hyper i hyper-electron-highlighter
-
-brew cask install --appdir="/Applications" atom
+x
 apm install file-icons
 
-brew cask install postman
+brew install --cask gpg-suite
+brew install --cask authy
 
 # install sublime 3
 # and package control :
@@ -98,16 +98,31 @@ brew cask install postman
 # Sublime Linter3
 # markdown extended
 # api blueprint
+brew cask install --appdir="/Applications" atom
+brew install --cask webstorm
+brew install --cask phpstorm
+
+brew install --cask postman
+
+brew install --cask figma
+
 
 
 echo "------------------------------"
 echo "Installing Misc apps: chrome, firefox, slack, evernote..."
 # Misc casks
-brew cask install --appdir="/Applications" google-chrome
-brew cask install --appdir="/Applications" firefox
-brew cask install --appdir="/Applications" slack
-brew cask install --appdir="/Applications" evernote
+brew install --cask --appdir="/Applications" google-chrome
+brew install --cask --appdir="/Applications" firefox
 
+brew install --cask --appdir="/Applications" slack
+brew install --cask --appdir="/Applications" gitter
+brew install --cask --appdir="/Applications" discord
+
+brew install --cask --appdir="/Applications" evernote
+brew install --appdir="/Applications" --cask typora
+
+brew install --cask airmail
+brew install --cask alfred
 
 echo "------------------------------"
 echo "Installing database/datastore: postgresql, mongoDB, Redis"
