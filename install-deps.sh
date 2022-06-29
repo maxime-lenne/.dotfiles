@@ -23,7 +23,7 @@ install_or_upgrade "libiconv"
 echo "------------------------------"
 echo "Installing Java, NPM, rvm, ruby, rails, elixir"
 #install languages
-brew cask install java
+brew install --cask java
 # install nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
 install_or_upgrade "yarn"
@@ -46,6 +46,12 @@ install_or_upgrade "elixir"
 mix local.hex
 mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_new.ez
 
+install_or_upgrade "composer"
+
+install_or_upgrade "docker"
+install_or_upgrade "ansible"
+install_or_upgrade "terraform"
+
 echo "------------------------------"
 echo "Installing developer tools : Git and bash completion."
 # install git
@@ -58,7 +64,7 @@ install_or_upgrade "heroku/brew/heroku"
 
 # fonts
 brew tap homebrew/cask-fonts
-brew cask install font-hack-nerd-font
+brew install --cask font-hack-nerd-font
 
 #Ho my zsh
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -79,11 +85,42 @@ install_or_upgrade "ffmpeg"
 install_or_upgrade "asciinema"
 npm install --global asciicast2gif
 
+
 echo "------------------------------"
-echo "Installing Daveloper apps : hyper term, atom..."
-brew cask install hyper
+echo "Installing database/datastore: postgresql, mongoDB, Redis"
+
+install_or_upgrade "mysql"
+install_or_upgrade "postgresql"
+brew tap mongodb/brew
+install_or_upgrade "mongodb-community@5.0"
+install_or_upgrade "redis"
+brew tap elastic/tap
+install_or_upgrade "elastic/tap/elasticsearch-full"
+install_or_upgrade "elastic/tap/apm-server-full"
+
+
+
+# API blueprint
+# #https://github.com/apiaryio/api-blueprint-sublime-plugin
+# Drafter command line tool
+# brew install --HEAD \
+#   https://raw.github.com/apiaryio/drafter/master/tools/homebrew/drafter.rb
+
+# https://github.com/jamiew/git-friendly
+# the `push` command which copies the github compare URL to my clipboard is heaven
+#sudo bash < <( curl https://raw.github.com/jamiew/git-friendly/master/install.sh)
+
+# https://github.com/isaacs/nave
+# needs npm, obviously.
+# TODO: I think i'd rather curl down the nave.sh, symlink it into /bin and use that for initial node install.
+#npm install -g nave
+
+
+echo "------------------------------"
+echo "Installing Developer apps : hyper term, atom..."
+brew install --cask hyper
 hyper i hyper-electron-highlighter
-x
+
 apm install file-icons
 
 brew install --cask gpg-suite
@@ -98,7 +135,7 @@ brew install --cask authy
 # Sublime Linter3
 # markdown extended
 # api blueprint
-brew cask install --appdir="/Applications" atom
+brew install --cask --appdir="/Applications" atom
 brew install --cask webstorm
 brew install --cask phpstorm
 
@@ -124,30 +161,7 @@ brew install --appdir="/Applications" --cask typora
 brew install --cask airmail
 brew install --cask alfred
 
-echo "------------------------------"
-echo "Installing database/datastore: postgresql, mongoDB, Redis"
-#brew install mysql
-install_or_upgrade "postgresql"
-install_or_upgrade "mongo"
-install_or_upgrade "redis"
-install_or_upgrade "elasticsearch"
 
-
-
-# API blueprint
-# #https://github.com/apiaryio/api-blueprint-sublime-plugin
-# Drafter command line tool
-# brew install --HEAD \
-#   https://raw.github.com/apiaryio/drafter/master/tools/homebrew/drafter.rb
-
-# https://github.com/jamiew/git-friendly
-# the `push` command which copies the github compare URL to my clipboard is heaven
-#sudo bash < <( curl https://raw.github.com/jamiew/git-friendly/master/install.sh)
-
-# https://github.com/isaacs/nave
-# needs npm, obviously.
-# TODO: I think i'd rather curl down the nave.sh, symlink it into /bin and use that for initial node install.
-#npm install -g nave
 
 # homebrew!
 # you need the code CLI tools YOU FOOL.
