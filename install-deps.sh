@@ -22,17 +22,21 @@ install_or_upgrade "libiconv"
 
 echo "------------------------------"
 echo "Installing Java, NPM, rvm, ruby, rails, elixir"
-#install languages
+# install languages
 brew install --cask java
+
+
 # install nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+nvm install --lts
+#nvm
+npm install -g npm@latest
 install_or_upgrade "yarn"
 
 npm install -g coffee-script
-#npm install -g grunt-cli
+# npm install -g grunt-cli
 npm install -g jshint
 npm install -g less
-gem install jekyll
 
 # https://rvm.io
 # rvm for the rubiess
@@ -41,6 +45,8 @@ gem install bundler pry hub
 
 gem install rails
 
+gem install jekyll
+
 # elixir
 install_or_upgrade "elixir"
 mix local.hex
@@ -48,9 +54,6 @@ mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_
 
 install_or_upgrade "composer"
 
-install_or_upgrade "docker"
-install_or_upgrade "ansible"
-install_or_upgrade "terraform"
 
 echo "------------------------------"
 echo "Installing developer tools : Git and bash completion."
@@ -61,6 +64,14 @@ install_or_upgrade "hub"
 # bash completion
 install_or_upgrade "bash-completion"
 install_or_upgrade "heroku/brew/heroku"
+
+brew tap hashicorp/tap
+# brew install hashicorp/tap/vault
+arch -arm64 brew install hashicorp/tap/vault
+
+install_or_upgrade "docker"
+install_or_upgrade "ansible"
+install_or_upgrade "terraform"
 
 # fonts
 brew tap homebrew/cask-fonts
@@ -156,11 +167,12 @@ brew install --cask --appdir="/Applications" gitter
 brew install --cask --appdir="/Applications" discord
 
 brew install --cask --appdir="/Applications" evernote
-brew install --appdir="/Applications" --cask typora
+brew install --cask --appdir="/Applications" typora
 
-brew install --cask airmail
+brew install --cask --appdir="/Applications" airmail
 brew install --cask alfred
 
+brew install --cask spotify
 
 
 # homebrew!

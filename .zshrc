@@ -43,8 +43,12 @@ export LC_CTYPE="en_US.UTF-8"
 export EDITOR="atom"
 export BUNDLER_EDITOR="atom"
 
-export NVM_DIR=~/.nvm
-source $(brew --prefix nvm)/nvm.sh
+
+# source $(brew --prefix nvm)/nvm.sh #nvm install via homebrew
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # place this after nvm initialization!
 autoload -U add-zsh-hook
