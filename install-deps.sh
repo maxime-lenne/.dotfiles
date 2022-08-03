@@ -94,8 +94,9 @@ install_or_upgrade "ffmpeg"
 
 # cast and gif from terminal
 install_or_upgrade "asciinema"
-npm install --global asciicast2gif
+npm i -g asciicast2gif
 
+npm i -g gitmoji-cli
 
 echo "------------------------------"
 echo "Installing database/datastore: postgresql, mongoDB, Redis"
