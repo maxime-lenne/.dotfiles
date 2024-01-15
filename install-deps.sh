@@ -60,6 +60,7 @@ echo "Installing developer tools : Git and bash completion."
 # install git
 install_or_upgrade "git"
 install_or_upgrade "hub"
+install_or_upgrade "gh"
 
 # bash completion
 install_or_upgrade "bash-completion"
@@ -153,8 +154,7 @@ brew install --cask phpstorm
 
 brew install --cask postman
 
-brew install --cask figma
-
+brew install --cask github
 
 
 echo "------------------------------"
@@ -167,8 +167,14 @@ brew install --cask --appdir="/Applications" slack
 brew install --cask --appdir="/Applications" gitter
 brew install --cask --appdir="/Applications" discord
 
+brew install --cask figma
+
 brew install --cask --appdir="/Applications" evernote
 brew install --cask --appdir="/Applications" typora
+brew install --cask notion
+brew install --cask miro
+brew install --cask asana
+# Todo add slab
 
 brew install --cask --appdir="/Applications" airmail
 brew install --cask alfred

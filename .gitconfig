@@ -16,7 +16,10 @@
 	required = true
 [pull]
 	rebase = true
+	autoSetupRemote = true
 [gpg]
 	program = /usr/local/bin/gpg
 [help]
   autocorrect = 1
+[push]
+	autoSetupRemote = true

@@ -74,3 +74,6 @@ alias reload="exec $SHELL -l"
 alias stt="sublime"
 
 alias lc='colorls -lA --sd'
+
+# PHP
+alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
