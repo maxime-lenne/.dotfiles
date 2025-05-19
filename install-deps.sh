@@ -3,7 +3,27 @@
 #install homebrew
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-function install_or_upgrade { brew ls | grep $1 > /dev/null; if (($? == 0)); then brew upgrade $1; else brew install $1; fi }
+function install_or_upgrade { 
+  if [[ "$1" == "--cask" ]]; then
+    local cask_flag="--cask"
+    local package=$2
+  else
+    local cask_flag=""
+    local package=$1
+  fi
+  
+  if [[ "$cask_flag" == "--cask" ]]; then
+    brew list --cask | grep $package > /dev/null
+  else
+    brew ls | grep $package > /dev/null
+  fi
+  
+  if (($? == 0)); then 
+    brew upgrade $cask_flag $package
+  else 
+    brew install $cask_flag $package
+  fi
+}
 
 
 #echo 'export PATH="/usr/local/sbin:$PATH"' >> ~/.bash_profile
