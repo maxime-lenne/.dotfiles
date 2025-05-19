@@ -17,6 +17,11 @@ source "${ZSH}/oh-my-zsh.sh"
 source ~/.aliases
 unalias rm # No interactive rm by default (brought by plugins/common-aliases)
 
+
+export PATH="/opt/homebrew/opt/libxml2/bin:$PATH"
+export PATH="/opt/homebrew/opt/libxslt/bin:$PATH"
+export PATH="/opt/homebrew/opt/libiconv/bin:$PATH"
+
 # Load rbenv if installed
 export PATH="${HOME}/.rbenv/bin:${PATH}"
 type -a rbenv > /dev/null && eval "$(rbenv init -)"
