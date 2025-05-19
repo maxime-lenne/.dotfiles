@@ -74,6 +74,12 @@ install_or_upgrade "docker"
 install_or_upgrade "ansible"
 install_or_upgrade "terraform"
 
+install_or_upgrade "scw"
+
+install_or_upgrade "kubectl"
+install_or_upgrade "helm"
+install_or_upgrade "derailed/k9s/k9s"
+
 # fonts
 brew tap homebrew/cask-fonts
 brew install --cask font-hack-nerd-font
@@ -149,6 +155,7 @@ brew install --cask authy
 # markdown extended
 # api blueprint
 brew install --cask --appdir="/Applications" atom
+
 brew install --cask webstorm
 brew install --cask phpstorm
 
@@ -173,13 +180,15 @@ brew install --cask --appdir="/Applications" evernote
 brew install --cask --appdir="/Applications" typora
 brew install --cask notion
 brew install --cask miro
-brew install --cask asana
+#brew install --cask asana
 # Todo add slab
 
 brew install --cask --appdir="/Applications" airmail
-brew install --cask alfred
 
-brew install --cask spotify
+# brew install --cask alfred
+brew install --cask raycast
+
+# brew install --cask spotify
 
 
 # homebrew!
