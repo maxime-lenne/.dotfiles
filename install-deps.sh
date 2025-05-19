@@ -39,12 +39,12 @@ echo ""
 
 # Install homebrew
 echo "Installing Homebrew..."
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 echo "------------------------------"
 echo "Installing Xcode Command Line Tools."
 xcode-select --install
-
+sudo xcodebuild -license accept
 
 echo "------------------------------"
 echo "Installing basic libraries..."
@@ -58,7 +58,6 @@ echo "------------------------------"
 echo "fonts and terminal customization"
 
 # fonts
-brew tap homebrew/cask-fonts
 install_or_upgrade "--cask" "font-hack-nerd-font"
 
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -83,8 +82,10 @@ fi
 
 if ask_to_install "Node.js and npm packages"; then
   # install nvm
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  exec bash -l
   nvm install --lts
+  exec bash -l
   npm install -g npm@latest
   install_or_upgrade "yarn"
 fi
@@ -126,6 +127,11 @@ fi
 if ask_to_install "Bash completion and "; then
   install_or_upgrade "bash-completion"
 fi
+
+if ask_to_install "ngrok "; then
+  install_or_upgrade "ngrok"
+fi
+ngrok
 
 
 echo "------------------------------"
@@ -301,8 +307,7 @@ if ask_to_install "miscellaneous applications"; then
     # Todo add slab
   fi
 
-  if ask_to_install "Email client (Airmail)"; then
-    install_or_upgrade "--cask" "airmail"
+  if ask_to_install "Email client (Notion mail)"; then
     install_or_upgrade "--cask" "notion-mail"
   fi
 
