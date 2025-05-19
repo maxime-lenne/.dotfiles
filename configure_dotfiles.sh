@@ -12,5 +12,5 @@ for name in .{aliases,bash_profile,bash_prompt,bashrc,exports,functions,gitconfi
   ln -s "$source" "$target"
 done
 
-echo "-----> Copy .dotfiles/.hyper.js to .hyper.js
+echo "-----> Copy .dotfiles/.hyper.js to .hyper.js"
 cp ".dotfiles/.hyper.js" ".hyper.js"

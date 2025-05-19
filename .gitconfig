@@ -1,7 +1,7 @@
 [user]
-	email = maxime.lenne@gmail.com
+	email = hello@maxime-lenne.fr
 	name = Maxime Lenne
-	signingkey = 791148BA47B3079FA11457EFFCB52E9B4A3AAF0B
+	signingkey = 9D78578DC41F6B1A
 [commit]
 	gpgsign = true
 [core]
@@ -18,7 +18,7 @@
 	rebase = true
 	autoSetupRemote = true
 [gpg]
-	program = /usr/local/bin/gpg
+	program = gpg
 [help]
   autocorrect = 1
 [push]

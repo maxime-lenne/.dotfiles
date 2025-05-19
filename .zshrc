@@ -84,3 +84,7 @@ eval "$(scw autocomplete script shell=zsh)"
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform
 export PATH=/Users/maximelenne/.meteor:$PATH
+alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh)"
