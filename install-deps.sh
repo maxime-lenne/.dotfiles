@@ -43,7 +43,7 @@ install_or_upgrade "libiconv"
 echo "------------------------------"
 echo "Installing Java, NPM, rvm, ruby, rails, elixir"
 # install languages
-brew install --cask java
+install_or_upgrade "--cask" "java"
 
 
 # install nvm
@@ -102,7 +102,7 @@ install_or_upgrade "derailed/k9s/k9s"
 
 # fonts
 brew tap homebrew/cask-fonts
-brew install --cask font-hack-nerd-font
+install_or_upgrade "--cask" "font-hack-nerd-font"
 
 #Ho my zsh
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -157,13 +157,13 @@ install_or_upgrade "elastic/tap/apm-server-full"
 
 echo "------------------------------"
 echo "Installing Developer apps : hyper term, atom..."
-brew install --cask hyper
+install_or_upgrade "--cask" "hyper"
 hyper i hyper-electron-highlighter
 
 apm install file-icons
 
-brew install --cask gpg-suite
-brew install --cask authy
+install_or_upgrade "--cask" "gpg-suite"
+install_or_upgrade "--cask" "authy"
 
 # install sublime 3
 # and package control :
@@ -174,41 +174,41 @@ brew install --cask authy
 # Sublime Linter3
 # markdown extended
 # api blueprint
-brew install --cask --appdir="/Applications" atom
+install_or_upgrade "--cask" "atom"
 
-brew install --cask webstorm
-brew install --cask phpstorm
+install_or_upgrade "--cask" "webstorm"
+install_or_upgrade "--cask" "phpstorm"
 
-brew install --cask postman
+install_or_upgrade "--cask" "postman"
 
-brew install --cask github
+install_or_upgrade "--cask" "github"
 
 
 echo "------------------------------"
 echo "Installing Misc apps: chrome, firefox, slack, evernote..."
 # Misc casks
-brew install --cask --appdir="/Applications" google-chrome
-brew install --cask --appdir="/Applications" firefox
+install_or_upgrade "--cask" "google-chrome"
+install_or_upgrade "--cask" "firefox"
 
-brew install --cask --appdir="/Applications" slack
-brew install --cask --appdir="/Applications" gitter
-brew install --cask --appdir="/Applications" discord
+install_or_upgrade "--cask" "slack"
+install_or_upgrade "--cask" "gitter"
+install_or_upgrade "--cask" "discord"
 
-brew install --cask figma
+install_or_upgrade "--cask" "figma"
 
-brew install --cask --appdir="/Applications" evernote
-brew install --cask --appdir="/Applications" typora
-brew install --cask notion
-brew install --cask miro
+install_or_upgrade "--cask" "evernote"
+install_or_upgrade "--cask" "typora"
+install_or_upgrade "--cask" "notion"
+install_or_upgrade "--cask" "miro"
 #brew install --cask asana
 # Todo add slab
 
-brew install --cask --appdir="/Applications" airmail
+install_or_upgrade "--cask" "airmail"
 
 # brew install --cask alfred
-brew install --cask raycast
+install_or_upgrade "--cask" "raycast"
 
-# brew install --cask spotify
+# install_or_upgrade "--cask" "spotify"
 
 
 # homebrew!
