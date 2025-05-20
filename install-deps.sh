@@ -41,6 +41,8 @@ echo ""
 echo "Installing Homebrew..."
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+sudo chown -R $(whoami):admin /opt/homebrew
+
 echo "------------------------------"
 echo "Installing Xcode Command Line Tools."
 xcode-select --install
@@ -68,8 +70,9 @@ echo "------------------------------"
 echo "image and media tools"
 
 #image optim
+install_or_upgrade "ghostscript"
 install_or_upgrade "imagemagick"
-install_or_upgrade "advancecomp gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant"
+install_or_upgrade "gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant"
 install_or_upgrade "ffmpeg"
 
 
@@ -90,9 +93,16 @@ if ask_to_install "Node.js and npm packages"; then
   install_or_upgrade "yarn"
 fi
 
+if ask_to_install "Python"; then
+  install_or_upgrade "pyenv"
+  pyenv install -v 3.13.3
+  pyenv global 3.13.3
+fi
+
+
 if ask_to_install "Ruby and Rails"; then
   # https://rvm.io
-  curl -L https://get.rvm.io | bash -s stable --ruby
+  \curl -sSL https://get.rvm.io | bash -s stable --rails
   gem install bundler pry hub
   gem install rails
   gem install jekyll
@@ -229,9 +239,8 @@ if ask_to_install "developer applications"; then
     hyper i hyper-electron-highlighter
   fi
 
-  if ask_to_install "GPG Suite and Authy"; then
+  if ask_to_install "GPG Suite"; then
     install_or_upgrade "--cask" "gpg-suite"
-    install_or_upgrade "--cask" "authy"
   fi
 
   if ask_to_install "Atom editor"; then
@@ -321,7 +330,7 @@ if ask_to_install "miscellaneous applications"; then
     install_or_upgrade "--cask" "timing"
   fi
 
-  
+
   if ask_to_install "Other personal setup"; then
     if ask_to_install "Music (Spotify)"; then
       install_or_upgrade "--cask" "spotify"

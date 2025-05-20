@@ -13,4 +13,4 @@ for name in .{aliases,bash_profile,bash_prompt,bashrc,exports,functions,gitconfi
 done
 
 echo "-----> Copy .dotfiles/.hyper.js to .hyper.js"
-cp ".dotfiles/.hyper.js" ".hyper.js"
+ln -s ".dotfiles/.hyper.js" ".hyper.js"

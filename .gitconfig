@@ -1,7 +1,6 @@
 [user]
 	email = hello@maxime-lenne.fr
 	name = Maxime Lenne
-	signingkey = 9D78578DC41F6B1A
 [commit]
 	gpgsign = true
 [core]
