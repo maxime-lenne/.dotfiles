@@ -49,6 +49,8 @@ export EDITOR="atom"
 export BUNDLER_EDITOR="atom"
 
 
+export PATH="/Users/maxime-lenne/.local/bin:$PATH"
+
 # source $(brew --prefix nvm)/nvm.sh #nvm install via homebrew
 
 export NVM_DIR="$HOME/.nvm"
@@ -88,8 +90,12 @@ eval "$(scw autocomplete script shell=zsh)"
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform
-export PATH=/Users/maximelenne/.meteor:$PATH
-alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
+
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init - zsh)"
+
+alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
+export KUBECONFIG=~/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity-staging.yaml
+
+. $(brew --prefix asdf)/libexec/asdf.sh

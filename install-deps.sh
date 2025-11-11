@@ -153,7 +153,7 @@ if ask_to_install "HashiCorp tools (Vault)"; then
 fi
 
 if ask_to_install "Docker, Ansible, and Terraform"; then
-  install_or_upgrade "docker"
+  install_or_upgrade "--cask" "docker"
   install_or_upgrade "ansible"
   install_or_upgrade "terraform"
 fi
@@ -279,6 +279,7 @@ if ask_to_install "AI applications"; then
   install_or_upgrade "--cask" "ollama"
   install_or_upgrade "--cask" "lm-studio"
   install_or_upgrade "aider"
+  install_or_upgrade "portaudio"
   install_or_upgrade "cursor"
 fi
 
