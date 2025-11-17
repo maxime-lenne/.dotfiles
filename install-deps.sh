@@ -202,13 +202,16 @@ if ask_to_install "databases and datastores"; then
 
   if ask_to_install "Redis"; then
     install_or_upgrade "redis"
-    install_or_upgrade "--cask""medis"
+    install_or_upgrade "--cask" "medis"
   fi
 
   if ask_to_install "Elasticsearch"; then
     brew tap elastic/tap
     install_or_upgrade "elastic/tap/elasticsearch-full"
     install_or_upgrade "elastic/tap/apm-server-full"
+  fi
+  if ask_to-install "mqttx"; then
+    install_or_upgrade "--cask"" mqttx"
   fi
 fi
 
@@ -243,8 +246,8 @@ if ask_to_install "developer applications"; then
     install_or_upgrade "--cask" "gpg-suite"
   fi
 
-  if ask_to_install "Atom editor"; then
-    install_or_upgrade "--cask" "atom"
+  if ask_to_install "sublime text editor"; then
+    install_or_upgrade "--cask" "sublime-text"
     apm install file-icons
   fi
 
@@ -277,8 +280,12 @@ if ask_to_install "AI applications"; then
   echo "Installing AI apps: Ollama, cursor..."
 
   install_or_upgrade "--cask" "ollama"
+  install_or_upgrade "--cask" "chatgpt"
+  install_or_upgrade "--cask" "claude"
   install_or_upgrade "--cask" "lm-studio"
   install_or_upgrade "aider"
+  install_or_upgrade "--cask" "claude-code"
+  install_or_upgrade "--cask" "codex"
   install_or_upgrade "portaudio"
   install_or_upgrade "cursor"
 fi
@@ -296,7 +303,7 @@ if ask_to_install "miscellaneous applications"; then
 
   if ask_to_install "Communication tools (Slack, Gitter, Discord)"; then
     install_or_upgrade "--cask" "slack"
-    install_or_upgrade "--cask" "gitter"
+    # install_or_upgrade "--cask" "gitter"
     install_or_upgrade "--cask" "discord"
     install_or_upgrade "--cask" "telegram"
     install_or_upgrade "--cask" "zoom"
@@ -308,7 +315,7 @@ if ask_to_install "miscellaneous applications"; then
   fi
 
   if ask_to_install "Note-taking and productivity apps (Evernote, Typora, Notion, Miro)"; then
-    install_or_upgrade "--cask" "evernote"
+    # install_or_upgrade "--cask" "evernote"
     install_or_upgrade "--cask" "typora"
     install_or_upgrade "--cask" "notion"
     install_or_upgrade "--cask" "miro"
@@ -326,7 +333,7 @@ if ask_to_install "miscellaneous applications"; then
   fi
 
   if ask_to_install "Productivity tools (Raycast, timing)"; then
-    # brew install --cask alfred
+    # install_or_upgrade "--cask" "alfred"
     install_or_upgrade "--cask" "raycast"
     install_or_upgrade "--cask" "timing"
   fi
