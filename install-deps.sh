@@ -319,6 +319,7 @@ if ask_to_install "miscellaneous applications"; then
     install_or_upgrade "--cask" "typora"
     install_or_upgrade "--cask" "notion"
     install_or_upgrade "--cask" "miro"
+    install_or_upgrade "--cask" "google-drive"
     install_or_upgrade "--cask" "superwhisper"
     # install_or_upgrade "asana"
     # Todo add slab
