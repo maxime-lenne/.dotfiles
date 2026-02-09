@@ -33,3 +33,4 @@ export PATH="$PATH:/usr/local/bin:/usr/local/sbin:/opt/local/bin:/opt/local/sbin
 PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 
 complete -C /opt/homebrew/bin/terraform terraform
+

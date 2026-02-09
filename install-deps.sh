@@ -89,8 +89,12 @@ if ask_to_install "Node.js and npm packages"; then
   exec bash -l
   nvm install --lts
   exec bash -l
-  npm install -g npm@latest
-  install_or_upgrade "yarn"
+  # install npm
+  # npm install -g npm@latest
+  # install bun
+  curl -fsSL https://bun.sh/install | bash
+  install_or_upgrade "pnpm"
+  # install_or_upgrade "yarn"
 fi
 
 if ask_to_install "Python"; then
@@ -175,6 +179,10 @@ fi
 
 if ask_to_install "Scaleway CLI"; then
   install_or_upgrade "scw"
+fi
+
+if ask_to_install "GCP CLI"; then
+  brew install --cask google-cloud-sdk
 fi
 
 if ask_to_install "asciinema and asciicast2gif tools"; then

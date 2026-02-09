@@ -99,3 +99,17 @@ alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
 export KUBECONFIG=~/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity-staging.yaml
 
 . $(brew --prefix asdf)/libexec/asdf.sh
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=(/Users/maxime-lenne/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions
+
+export PATH="$HOME/bin:$PATH"
+
+# bun completions
+[ -s "/Users/maxime-lenne/.oh-my-zsh/completions/_bun" ] && source "/Users/maxime-lenne/.oh-my-zsh/completions/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
