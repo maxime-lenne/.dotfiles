@@ -159,7 +159,8 @@ fi
 if ask_to_install "Docker, Ansible, and Terraform"; then
   install_or_upgrade "--cask" "docker"
   install_or_upgrade "ansible"
-  install_or_upgrade "terraform"
+  brew tap hashicorp/tap
+  brew install hashicorp/tap/terraform
 fi
 
 if ask_to_install "Kubernetes tools (kubectl, helm, k9s)"; then
