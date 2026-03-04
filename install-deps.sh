@@ -79,6 +79,14 @@ install_or_upgrade "ffmpeg"
 echo "------------------------------"
 echo "Installing Java, NPM, rvm, ruby, rails, elixir"
 
+if ask_to_install "asdf"; then
+  install_or_upgrade "asdf"
+fi
+
+if ask_to_install "uv"; then
+  install_or_upgrade "uv"
+fi
+
 if ask_to_install "Java"; then
   install_or_upgrade "--cask" "java"
 fi
@@ -181,6 +189,12 @@ fi
 if ask_to_install "Scaleway CLI"; then
   install_or_upgrade "scw"
 fi
+
+if ask_to_install "GCP CLI"; then
+  install_or_upgrade "--cask" "gcloud-cli"
+fi
+
+brew install --cask gcloud-cli
 
 if ask_to_install "GCP CLI"; then
   brew install --cask google-cloud-sdk

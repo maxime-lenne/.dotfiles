@@ -105,6 +105,13 @@ autoload -Uz compinit
 compinit
 # End of Docker CLI completions
 
+# bun completions
+[ -s "/Users/maxime-lenne/.bun/_bun" ] && source "/Users/maxime-lenne/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
 export PATH="$HOME/bin:$PATH"
 
 # bun completions
