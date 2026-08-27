@@ -96,9 +96,9 @@ export PYENV_ROOT="$HOME/.pyenv"
 eval "$(pyenv init - zsh)"
 
 alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
-export KUBECONFIG=~/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity-staging.yaml
+alias k8s-staging="export KUBECONFIG=~/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity.yaml"
 
-. $(brew --prefix asdf)/libexec/asdf.sh
+fpath=($(brew --prefix asdf)/share/zsh/site-functions $fpath)
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
 fpath=(/Users/maxime-lenne/.docker/completions $fpath)
 autoload -Uz compinit
