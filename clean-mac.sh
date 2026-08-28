@@ -2,17 +2,34 @@
 
 # clean-mac.sh - Libere de l'espace disque en nettoyant les caches
 # et fichiers temporaires des outils de dev installes via ce projet
-# (Homebrew, Docker Desktop, JetBrains, Ollama, uv, bun).
+# (Homebrew, Docker Desktop, JetBrains, Ollama, uv, bun), et propose
+# la suppression complete des gestionnaires de version legacy
+# (pyenv, nvm, rvm) remplaces par asdf/uv/bun.
+#
+# macOS uniquement (Homebrew, Library/, Docker Desktop, JetBrains,
+# Xcode...). Pour les serveurs Linux (Raspberry Pi, Scaleway,
+# conteneurs), voir la section dediee dans le README : ce script ne
+# s'y applique pas.
+#
+# Le script detecte s'il tourne sur le Mac mini (role "server", plus
+# un poste de dev mais un serveur local/distant headless) ou sur le
+# MacBook Pro (role "workstation") via le hostname, et adapte le ton
+# des recommandations sur les outils legacy et GUI en consequence.
 #
 # Chaque section explique ce qui va etre supprime avant de demander
 # une confirmation. Rien n'est supprime sans validation explicite.
 #
 # Options:
-#   -y, --yes       repond "oui" a toutes les questions automatiquement
-#       --dry-run   affiche ce qui serait fait sans rien supprimer
-#   -h, --help      affiche cette aide
+#   -y, --yes         repond "oui" a toutes les questions automatiquement
+#       --dry-run     affiche ce qui serait fait sans rien supprimer
+#       --server      force le role "serveur" (recommandations Mac mini)
+#       --workstation force le role "poste de dev" (recommandations MacBook Pro)
+#   -h, --help        affiche cette aide
 
 set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/dotfiles-lib.sh"
 
 AUTO_YES=false
 DRY_RUN=false
@@ -28,47 +45,20 @@ for arg in "$@"; do
   esac
 done
 
-if [ -t 1 ]; then
-  BOLD=$(tput bold); DIM=$(tput dim); RESET=$(tput sgr0)
-  GREEN=$(tput setaf 2); YELLOW=$(tput setaf 3); CYAN=$(tput setaf 6)
-else
-  BOLD=""; DIM=""; RESET=""; GREEN=""; YELLOW=""; CYAN=""
-fi
+# Detecte le role de la machine (--server/--workstation, MACHINE_ROLE,
+# ou hostname) : le Mac mini de ce setup sert de serveur local/distant
+# (plus un poste de dev pur), le MacBook Pro reste le poste de dev.
+detect_machine_role "$@"
 
 TOTAL_FREED_KB=0
 
-have_cmd() { command -v "$1" >/dev/null 2>&1; }
-
-section() {
-  echo ""
-  echo "${BOLD}------------------------------${RESET}"
-  echo "${BOLD}$1${RESET}"
-  echo "${BOLD}------------------------------${RESET}"
-}
-
-explain() {
-  echo "${CYAN}ℹ${RESET}  $1"
-}
-
-warn() {
-  echo "${YELLOW}⚠${RESET}  $1"
-}
-
-skipped() {
-  echo "${DIM}-  ignoré : $1${RESET}"
-}
-
 ask_to_clean() {
   local description=$1
-  if $AUTO_YES; then
-    echo "${GREEN}→ (auto) nettoyage de : $description${RESET}"
+  if ask "Nettoyer $description ?"; then
     return 0
   fi
-  read -p "${BOLD}Nettoyer $description ? (y/n): ${RESET}" choice
-  case "$choice" in
-    y|Y) return 0 ;;
-    *) skipped "$description"; return 1 ;;
-  esac
+  skipped "$description"
+  return 1
 }
 
 run() {
@@ -104,6 +94,12 @@ report_freed() {
 echo "${BOLD}Nettoyage de l'espace disque - Mac dev setup${RESET}"
 $DRY_RUN && echo "${YELLOW}Mode dry-run : rien ne sera réellement supprimé.${RESET}"
 echo "Chaque section explique ce qui va être nettoyé et demande confirmation avant d'agir."
+if [ "$MACHINE_ROLE" = "server" ]; then
+  explain "Rôle détecté : ${BOLD}serveur${RESET}${CYAN} (Mac mini) — ce Mac n'est plus un poste de dev pur mais un serveur local/distant headless. Les recommandations sur les outils legacy et GUI sont plus tranchées.${RESET}"
+else
+  explain "Rôle détecté : ${BOLD}poste de dev${RESET}${CYAN} (MacBook Pro) — nettoyage plus prudent, les IDE et outils GUI restent utiles au quotidien.${RESET}"
+fi
+explain "Force le rôle avec --server / --workstation si la détection par hostname se trompe."
 
 DISK_FREE_BEFORE=$(df -h / | awk 'NR==2 {print $4}')
 
@@ -269,6 +265,38 @@ if have_cmd bun; then
 else
   skipped "bun n'est pas installé"
 fi
+
+# ------------------------------------------------------------------
+# Gestionnaires de version legacy (pyenv, nvm, rvm)
+# ------------------------------------------------------------------
+section "Gestionnaires de version legacy (pyenv, nvm, rvm)"
+explain "Ce setup utilise asdf (Ruby, Node...), uv (Python) et bun (JS/TS) comme gestionnaires de version/paquets principaux. pyenv, nvm et rvm faisaient le même travail avant et ne devraient plus être installés en double."
+if [ "$MACHINE_ROLE" = "server" ]; then
+  explain "Rôle serveur : ces outils historiques n'ont plus de raison d'être sur cette machine, suppression complète recommandée (pas juste le cache)."
+else
+  explain "Rôle poste de dev : vérifie d'abord qu'aucun vieux projet/rc file ne les référence encore avant de les supprimer complètement."
+fi
+
+for entry in "pyenv|$HOME/.pyenv|remplacé par uv (uv python install / uv venv)" \
+             "nvm|$HOME/.nvm|remplacé par asdf (plugin nodejs) ou bun" \
+             "rvm|$HOME/.rvm|remplacé par asdf (plugin ruby)"; do
+  IFS="|" read -r name dir reason <<< "$entry"
+  if [ -d "$dir" ]; then
+    size=$(kb_to_human "$(dir_size_kb "$dir")")
+    warn "$name détecté ($dir, $size) — $reason"
+    if have_cmd "$name"; then
+      warn "$name est encore actif dans ce shell (trouvé dans le PATH) — vérifie tes fichiers .zshrc/.bash_profile avant de supprimer."
+    fi
+    if ask_to_clean "la suppression complète de $name ($dir, $size) — désinstallation, pas juste le cache"; then
+      before=$(dir_size_kb "$dir")
+      run rm -rf "${dir:?}"
+      report_freed "$name (suppression complète)" "$before" "$dir"
+      warn "Pense à retirer les lignes d'initialisation de $name de tes fichiers shell (.zshrc/.bash_profile) si elles y sont encore."
+    fi
+  else
+    skipped "$name n'est pas installé ($dir introuvable)"
+  fi
+done
 
 # ------------------------------------------------------------------
 # Bonus : autres caches de dev courants sur ce setup

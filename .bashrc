@@ -1,14 +1,10 @@
 source ~/.bash_profile
 
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
+# asdf shims first: it's the single version manager for Ruby, Node...
+# (replaces rbenv/nvm/rvm, all removed). Must come before any other
+# tool-specific PATH entry so asdf-managed versions take priority.
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
-. <(asdf completion bash)
-. "$HOME/.asdf/asdf.sh"
-. "$HOME/.asdf/completions/asdf.bash"
+# asdf 0.16+ is a single Go binary: no more asdf.sh/asdf.bash to source,
+# shims in PATH above is enough. Only completions need loading.
+command -v asdf >/dev/null 2>&1 && . <(asdf completion bash)

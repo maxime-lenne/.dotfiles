@@ -22,9 +22,13 @@ export PATH="/opt/homebrew/opt/libxml2/bin:$PATH"
 export PATH="/opt/homebrew/opt/libxslt/bin:$PATH"
 export PATH="/opt/homebrew/opt/libiconv/bin:$PATH"
 
-# Load rbenv if installed
-export PATH="${HOME}/.rbenv/bin:${PATH}"
-type -a rbenv > /dev/null && eval "$(rbenv init -)"
+# asdf shims first: it's the single version manager for Ruby, Node...
+# (replaces rbenv/nvm/rvm, all removed). Must come before any other
+# tool-specific PATH entry so asdf-managed versions take priority.
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:${PATH}"
+
+# Still used by ruby-build (which asdf's ruby plugin relies on) to
+# compile Ruby versions against a modern OpenSSL.
 export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
 
 export GPG_TTY=$(tty)
@@ -51,49 +55,11 @@ export BUNDLER_EDITOR="atom"
 
 export PATH="/Users/maxime-lenne/.local/bin:$PATH"
 
-# source $(brew --prefix nvm)/nvm.sh #nvm install via homebrew
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-# place this after nvm initialization!
-autoload -U add-zsh-hook
-load-nvmrc() {
-  local node_version="$(nvm version)"
-  local nvmrc_path="$(nvm_find_nvmrc)"
-
-  if [ -n "$nvmrc_path" ]; then
-    local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
-
-    if [ "$nvmrc_node_version" = "N/A" ]; then
-      nvm install
-    elif [ "$nvmrc_node_version" != "$node_version" ]; then
-      nvm use
-    fi
-  elif [ "$node_version" != "$(nvm version default)" ]; then
-    echo "Reverting to nvm default version"
-    nvm use default
-  fi
-}
-add-zsh-hook chpwd load-nvmrc
-load-nvmrc
-
-export PATH="/usr/local/opt/node@12/bin:$PATH"
-
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 # Scaleway CLI autocomplete initialization.
 eval "$(scw autocomplete script shell=zsh)"
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform
-
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init - zsh)"
 
 alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
 alias k8s-staging="export KUBECONFIG=~/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity.yaml"
@@ -104,13 +70,6 @@ fpath=(/Users/maxime-lenne/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
-
-# bun completions
-[ -s "/Users/maxime-lenne/.bun/_bun" ] && source "/Users/maxime-lenne/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
 
 export PATH="$HOME/bin:$PATH"
 

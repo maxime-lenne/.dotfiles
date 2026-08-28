@@ -1,13 +1,25 @@
 #!/bin/bash
 
+# Options:
+#   --server       minimal package-manager setup: only the target stack
+#                  (asdf, uv, bun), no prompts, legacy managers skipped.
+#                  For headless machines (e.g. the Mac mini server).
+#   --workstation  full setup: asks for the target stack plus legacy/
+#                  optional package managers (nvm, pyenv, rvm, pnpm/yarn)
+#                  for compatibility. For dev machines (e.g. the MacBook Pro).
+#
+# Auto-detected from hostname if neither flag is passed (a "mac-mini"
+# hostname maps to --server, anything else to --workstation).
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/dotfiles-lib.sh"
+
+detect_machine_role "$@"
+
 # Function to ask user if they want to install a section
 ask_to_install() {
   local section_name=$1
-  read -p "Do you want to install $section_name? (y/n): " choice
-  case "$choice" in
-    y|Y ) return 0;;
-    * ) return 1;;
-  esac
+  ask "Do you want to install $section_name?"
 }
 
 function install_or_upgrade {
@@ -35,6 +47,8 @@ function install_or_upgrade {
 echo "Welcome to the dotfiles installation script!"
 echo "This script will guide you through installing various development tools and applications."
 echo "You can choose which sections to install."
+echo ""
+echo "Machine role: $MACHINE_ROLE (override with --server / --workstation)"
 echo ""
 
 # Install homebrew
@@ -77,47 +91,82 @@ install_or_upgrade "ffmpeg"
 
 
 echo "------------------------------"
-echo "Installing Java, NPM, rvm, ruby, rails, elixir"
+echo "Installing package managers: asdf, uv, bun (target stack), Java, Elixir"
 
-if ask_to_install "asdf"; then
+# --- Target stack: asdf, uv, bun ---
+# Server role: minimal, non-interactive, target stack only, no legacy managers.
+if [ "$MACHINE_ROLE" = "server" ]; then
+  echo "Server role: installing the target package managers only (asdf, uv, bun) — legacy managers (nvm, pyenv, rvm, yarn) are skipped."
   install_or_upgrade "asdf"
-fi
-
-if ask_to_install "uv"; then
   install_or_upgrade "uv"
+  curl -fsSL https://bun.sh/install | bash
+else
+  if ask_to_install "asdf (Ruby, Node... version manager)"; then
+    install_or_upgrade "asdf"
+  fi
+
+  if ask_to_install "uv (Python version/package manager)"; then
+    install_or_upgrade "uv"
+  fi
+
+  if ask_to_install "bun (JS/TS runtime and package manager)"; then
+    curl -fsSL https://bun.sh/install | bash
+  fi
 fi
 
 if ask_to_install "Java"; then
   install_or_upgrade "--cask" "java"
 fi
 
-if ask_to_install "Node.js and npm packages"; then
-  # install nvm
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-  exec bash -l
-  nvm install --lts
-  exec bash -l
-  # install npm
-  # npm install -g npm@latest
-  # install bun
-  curl -fsSL https://bun.sh/install | bash
-  install_or_upgrade "pnpm"
-  # install_or_upgrade "yarn"
+# --- Node.js, via asdf's nodejs plugin (target stack) ---
+if ask_to_install "Node.js (via asdf)"; then
+  asdf plugin add nodejs 2>/dev/null
+  asdf install nodejs latest
+  asdf set nodejs latest --home
 fi
 
-if ask_to_install "Python"; then
-  install_or_upgrade "pyenv"
-  pyenv install -v 3.13.3
-  pyenv global 3.13.3
+if [ "$MACHINE_ROLE" = "workstation" ]; then
+  if ask_to_install "nvm and pnpm/yarn (legacy/optional — asdf + bun already cover Node.js)"; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+    install_or_upgrade "pnpm"
+    # install_or_upgrade "yarn"
+  fi
+else
+  echo "Server role: skipping nvm/pnpm/yarn (legacy, superseded by asdf/bun)."
 fi
 
+# --- Python, via uv (target stack) ---
+if ask_to_install "Python (via uv)"; then
+  uv python install 3.13
+fi
 
-if ask_to_install "Ruby and Rails"; then
-  # https://rvm.io
-  \curl -sSL https://get.rvm.io | bash -s stable --rails
+if [ "$MACHINE_ROLE" = "workstation" ]; then
+  if ask_to_install "pyenv (legacy/optional — uv already covers Python)"; then
+    install_or_upgrade "pyenv"
+    pyenv install -v 3.13.3
+    pyenv global 3.13.3
+  fi
+else
+  echo "Server role: skipping pyenv (legacy, superseded by uv)."
+fi
+
+# --- Ruby and Rails, via asdf's ruby plugin (target stack) ---
+if ask_to_install "Ruby and Rails (via asdf)"; then
+  asdf plugin add ruby 2>/dev/null
+  asdf install ruby latest
+  asdf set ruby latest --home
   gem install bundler pry hub
   gem install rails
   gem install jekyll
+fi
+
+if [ "$MACHINE_ROLE" = "workstation" ]; then
+  if ask_to_install "rvm (legacy/optional — asdf already covers Ruby)"; then
+    # https://rvm.io
+    \curl -sSL https://get.rvm.io | bash -s stable --rails
+  fi
+else
+  echo "Server role: skipping rvm (legacy, superseded by asdf)."
 fi
 
 if ask_to_install "Elixir"; then
