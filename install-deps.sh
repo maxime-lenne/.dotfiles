@@ -419,6 +419,35 @@ if ask_to_install "miscellaneous applications"; then
   fi
 fi
 
+if [ "$MACHINE_ROLE" = "workstation" ]; then
+  if ask_to_install "Mac App Store applications (mas CLI + Airmail, Office, Keynote/Numbers/Pages, WhatsApp...)"; then
+    echo "Note: mas can only install/update apps tied to the Apple ID already signed in via the App Store app — sign in there first if 'mas install' fails with an account error."
+
+    install_or_upgrade "mas"
+
+    mas install 918858936    # Airmail
+    mas install 6738511300   # Microsoft Copilot
+    mas install 640199958    # Apple Developer
+    mas install 6474268307   # Enchanted (Ollama GUI)
+    mas install 6636493997   # ExcalidrawZ
+    mas install 409183694    # Keynote
+    mas install 1480068668   # Messenger
+    mas install 462058435    # Microsoft Excel
+    mas install 462062816    # Microsoft PowerPoint
+    mas install 1289197285   # MindNode 2
+    mas install 1218718027   # MindNode Classic
+    mas install 409203825    # Numbers
+    mas install 823766827    # OneDrive
+    mas install 409201541    # Pages
+    mas install 1153157709   # Speedtest
+    mas install 899247664    # TestFlight
+    mas install 1568264476   # TypingLand
+    mas install 310633997    # WhatsApp
+  fi
+else
+  echo "Server role: skipping Mac App Store applications (personal/productivity apps, not needed on a headless server)."
+fi
+
 
 # Clean up
 if ask_to_install "cleanup of outdated packages"; then
