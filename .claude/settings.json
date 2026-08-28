@@ -1,0 +1,10 @@
+{
+  "deniedMcpServers": [
+    { "serverName": "excalidraw-staging" },
+    { "serverName": "figma-desktop" },
+    { "serverName": "n8n-mcp-prod" },
+    { "serverName": "n8n-mcp-staging" },
+    { "serverName": "pencil" },
+    { "serverName": "sentry" }
+  ]
+}
