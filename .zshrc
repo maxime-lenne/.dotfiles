@@ -27,9 +27,11 @@ export PATH="/opt/homebrew/opt/libiconv/bin:$PATH"
 # tool-specific PATH entry so asdf-managed versions take priority.
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:${PATH}"
 
-# Still used by ruby-build (which asdf's ruby plugin relies on) to
-# compile Ruby versions against a modern OpenSSL.
-export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
+# ruby-build (which asdf's ruby plugin relies on) compiles Ruby against
+# this OpenSSL. openssl@3 since 2026-08-28: Ruby 3.3.5 builds and links
+# against it fine (verified: OpenSSL::OPENSSL_VERSION reports 3.6.3),
+# and openssl@1.1 is EOL upstream with nothing left depending on it.
+export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@3)"
 
 export GPG_TTY=$(tty)
 
@@ -49,7 +51,7 @@ export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
 
-export EDITOR="atom"
+export EDITOR="vim"
 export BUNDLER_EDITOR="atom"
 
 
@@ -79,3 +81,6 @@ export PATH="$HOME/bin:$PATH"
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Added by Antigravity
+export PATH="/Users/maxime-lenne/.antigravity/antigravity/bin:$PATH"

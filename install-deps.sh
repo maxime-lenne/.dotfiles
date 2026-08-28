@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # Options:
-#   --server       minimal package-manager setup: only the target stack
-#                  (asdf, uv, bun), no prompts, legacy managers skipped.
-#                  For headless machines (e.g. the Mac mini server).
-#   --workstation  full setup: asks for the target stack plus legacy/
-#                  optional package managers (nvm, pyenv, rvm, pnpm/yarn)
-#                  for compatibility. For dev machines (e.g. the MacBook Pro).
+#   --server       minimal setup: the target package-manager stack
+#                  (asdf, uv, bun) installed without prompts, and no GUI
+#                  apps. For headless machines (e.g. the Mac mini server).
+#   --workstation  full setup: same package-manager stack, but asked
+#                  section by section, plus IDEs, GUI and App Store apps.
+#                  For dev machines (e.g. the MacBook Pro).
+#
+# The legacy managers (nvm, pyenv, rvm) are NOT installed by either role:
+# they were removed from both machines on 2026-08-28 and asdf/uv/bun
+# fully replace them. See README "Package managers".
 #
 # Auto-detected from hostname if neither flag is passed (a "mac-mini"
 # hostname maps to --server, anything else to --workstation).
@@ -102,7 +106,7 @@ echo "Installing package managers: asdf, uv, bun (target stack), Java, Elixir"
 # --- Target stack: asdf, uv, bun ---
 # Server role: minimal, non-interactive, target stack only, no legacy managers.
 if [ "$MACHINE_ROLE" = "server" ]; then
-  echo "Server role: installing the target package managers only (asdf, uv, bun) — legacy managers (nvm, pyenv, rvm, yarn) are skipped."
+  echo "Server role: installing the target package managers (asdf, uv, bun) without prompting."
   install_or_upgrade "asdf"
   install_or_upgrade "uv"
   curl -fsSL https://bun.sh/install | bash
@@ -131,29 +135,20 @@ if ask_to_install "Node.js (via asdf)"; then
   asdf set nodejs latest --home
 fi
 
+# pnpm/yarn are kept as an opt-in: some projects' lockfiles still
+# require them. nvm is not offered — asdf's nodejs plugin replaces it.
 if [ "$MACHINE_ROLE" = "workstation" ]; then
-  if ask_to_install "nvm and pnpm/yarn (legacy/optional — asdf + bun already cover Node.js)"; then
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  if ask_to_install "pnpm and yarn (only for projects whose lockfile requires them — bun is the default)"; then
     install_or_upgrade "pnpm"
     install_or_upgrade "yarn"
   fi
 else
-  echo "Server role: skipping nvm/pnpm/yarn (legacy, superseded by asdf/bun)."
+  echo "Server role: skipping pnpm/yarn (bun is the default JS package manager)."
 fi
 
 # --- Python, via uv (target stack) ---
 if ask_to_install "Python (via uv)"; then
   uv python install 3.13
-fi
-
-if [ "$MACHINE_ROLE" = "workstation" ]; then
-  if ask_to_install "pyenv (legacy/optional — uv already covers Python)"; then
-    install_or_upgrade "pyenv"
-    pyenv install -v 3.13.3
-    pyenv global 3.13.3
-  fi
-else
-  echo "Server role: skipping pyenv (legacy, superseded by uv)."
 fi
 
 # --- Ruby and Rails, via asdf's ruby plugin (target stack) ---
@@ -164,15 +159,6 @@ if ask_to_install "Ruby and Rails (via asdf)"; then
   gem install bundler pry hub
   gem install rails
   gem install jekyll
-fi
-
-if [ "$MACHINE_ROLE" = "workstation" ]; then
-  if ask_to_install "rvm (legacy/optional — asdf already covers Ruby)"; then
-    # https://rvm.io
-    \curl -sSL https://get.rvm.io | bash -s stable --rails
-  fi
-else
-  echo "Server role: skipping rvm (legacy, superseded by asdf)."
 fi
 
 if ask_to_install "Elixir"; then
@@ -353,6 +339,7 @@ if ask_to_install "developer applications"; then
   echo "Installing Developer apps: Ghostty, IDEs, Postman..."
 
   if ask_to_install "Ghostty terminal"; then
+    #install_or_upgrade "--cask" "wezterm"
     install_or_upgrade "--cask" "ghostty"
   fi
 

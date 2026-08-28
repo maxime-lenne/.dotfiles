@@ -104,18 +104,25 @@ package manager). This combo is intentional: fast, low overhead, and
 each one replaces a whole category of older tools instead of stacking
 on top of them.
 
-Legacy tools that predate this setup and are being phased out because
-they're now redundant:
+Legacy tools that predated this setup — **all removed on 2026-08-28**,
+from the MacBook Pro and the Mac mini alike, and no longer installed by
+`install-deps.sh` on either role:
 
-- **pyenv** → replaced by `uv` (`uv python install`, `uv venv`).
-- **nvm** → replaced by `asdf` (nodejs plugin) or `bun` directly.
-- **rvm** → replaced by `asdf` (ruby plugin).
-- **npm** / **yarn** → kept only for compatibility with projects that
-  require them; `bun` is the default otherwise.
+- **pyenv** → replaced by `uv` (`uv python install`, `uv venv`). uv
+  reads the same `.python-version` files pyenv did, so per-project pins
+  kept working as-is.
+- **nvm** → replaced by `asdf` (nodejs plugin). Node lives in
+  `~/.asdf`, resolved through the shims on `PATH`; `.nvmrc` files need
+  converting to `.tool-versions`.
+- **rvm** → replaced by `asdf` (ruby plugin). `ruby` no longer resolves
+  to the macOS system 2.6.10.
+- **npm** / **pnpm** / **yarn** → kept only for projects whose lockfile
+  requires them; `bun` is the default otherwise.
 
-`clean-mac.sh` has a dedicated section that detects leftover
-`~/.pyenv`, `~/.nvm`, `~/.rvm` installs and offers to remove them
-completely (not just their cache) — see below.
+`clean-mac.sh` still has the section that detects leftover `~/.pyenv`,
+`~/.nvm`, `~/.rvm` installs and offers to remove them completely (not
+just their cache) — keep it for machines that haven't been through this
+yet, and as a guard against an installer silently putting one back.
 
 ## Disk cleanup (`clean-mac.sh`)
 
@@ -159,10 +166,16 @@ Usage:
 ./clean-mac.sh --workstation  # force the MacBook Pro / dev recommendations
 ```
 
-## System inventory & audit (Mac mini)
+## System inventories & audits
 
-Point-in-time inventory of everything installed on the Mac mini, plus
-a cleanup audit with findings and recommendations, lives in
-[`docs/audit-mac-mini.md`](docs/audit-mac-mini.md) rather than here —
-it's a snapshot of one machine's state, not usage documentation for
-this repo.
+Point-in-time inventories of everything installed on each machine,
+plus a cleanup audit with findings and recommendations, live in
+`docs/` rather than here — they're snapshots of one machine's state,
+not usage documentation for this repo:
+
+- [`docs/audit-mac-mini.md`](docs/audit-mac-mini.md) — the server:
+  what to strip back to a headless footprint.
+- [`docs/audit-macbook-pro.md`](docs/audit-macbook-pro.md) — the
+  workstation: a large footprint is expected, so the findings are
+  about drift and hygiene (manual installs, tools installed twice,
+  declared stack vs. actual stack, disk pressure).
