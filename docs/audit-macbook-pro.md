@@ -255,18 +255,58 @@ here has been actioned yet.
     Messenger, MindNode 2/Classic, Speedtest, TypingLand — none of which
     are installed here — and misses OneNote, Outlook, Word, MindNode
     Next, ExcalidrawZ, Xcode, which are).
-13. **`install-deps.sh` has real bugs**, visible now that it's being
-    read against a live machine: `ask_to-install "mqttx"` (hyphen
-    instead of underscore — that line would fail), `install_or_upgrade
-    "--cask"" mqttx"` (broken quoting), `install_or_upgrade "cursor"`
-    (missing `--cask`, would look for a nonexistent formula),
-    `install_or_upgrade "--cask" "ollama"` while the installed cask is
-    `ollama-app`, a stray unconditional `brew install --cask gcloud-cli`
-    and a bare `ngrok` call outside any guard, and two "GCP CLI" prompts
-    installing different things. Also `install_or_upgrade`'s
-    `brew list | grep $package` matches substrings, so e.g. `jpeg`
-    matches `jpeg-turbo`. Worth a cleanup pass — this script is the only
-    thing standing between a rebuild and this exact drift.
+13. ~~`install-deps.sh` has real bugs.~~ **Done on 2026-08-28.** Every
+    package name below was checked against `brew info` before being
+    changed; the script passes `bash -n`, and the rewritten helper was
+    unit-tested against a stubbed `brew`.
+
+    *Would have failed outright:* `ask_to-install "mqttx"` (hyphen for
+    underscore — a command-not-found), `install_or_upgrade "--cask"" mqttx"`
+    (the two strings concatenated into the single argument
+    `--cask mqttx`), a bare `ngrok` call outside any guard, and
+    `apm install file-icons` — Atom's package manager, sunset in 2022.
+
+    *Installed the wrong thing, silently:* `install_or_upgrade "cursor"`
+    without `--cask` (looked for a nonexistent formula); the `java` cask,
+    which Homebrew removed — now `temurin`; the `ollama` cask alias
+    instead of the `ollama-app` that's actually installed; the `docker`
+    cask, confusable with the `docker` CLI formula the colima step
+    installs — now `docker-desktop`; `postgresql`, an alias whose target
+    major changes over time — now `postgresql@18`; and
+    `mongodb-community@5.0`, EOL since October 2024.
+
+    *Ran unconditionally or twice:* a stray `brew install --cask
+    gcloud-cli` outside every guard, plus a second "GCP CLI" prompt
+    installing `google-cloud-sdk` — which `brew info` confirms is just
+    an alias for `gcloud-cli`. Both removed.
+
+    *The helper itself:* `install_or_upgrade` decided "already
+    installed?" with `brew list | grep $package`, an unanchored
+    substring match — `jpeg` matched the installed `jpeg-turbo`, so it
+    ran `brew upgrade jpeg` on a package that was never installed. It
+    now matches exactly (`grep -qxF`), compares tap-qualified names like
+    `derailed/k9s/k9s` on their last component the way brew lists them,
+    accepts several packages per call (the image-tools line passed all
+    nine as one space-joined string), and reports a failing brew command
+    instead of swallowing it — which is what makes the two
+    tap-dependent steps below degrade gracefully.
+
+    *Ordering:* `gem install colorls` ran in the fonts section, long
+    before any Ruby manager existed, so it hit the macOS system Ruby.
+    Moved into the Ruby section. `hub` was dropped from
+    `gem install bundler pry hub` — it's the Homebrew formula the Git
+    section already installs, not a gem.
+
+    *Left as-is, flagged:* `goplaces` (cask) and `mqttx-cli` (formula)
+    are in neither homebrew/core nor any tap set up on this machine,
+    though both are installed on the Mac mini. Their upstream taps
+    couldn't be identified from here, so the steps carry a comment and
+    now fail loudly instead of aborting the run.
+
+    Worth adding: **`shellcheck` in CI or a pre-commit hook**. Every
+    defect above is one it catches, and this script is the only thing
+    standing between a rebuild and the drift the rest of this audit
+    documents.
 14. ~~Uncommitted drift in the working tree.~~ **Done — committed on
     2026-08-28**, together with the item-6 migration. What went in:
     `EDITOR=atom` → `vim`, the Antigravity `PATH` line its installer

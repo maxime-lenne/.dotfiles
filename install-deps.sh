@@ -26,26 +26,38 @@ ask_to_install() {
   ask "Do you want to install $section_name?"
 }
 
+# Installs a package, or upgrades it if it's already there.
+# Usage: install_or_upgrade [--cask] <package> [<package>...]
+#
+# Names are matched *exactly* against `brew list`. The previous version
+# grepped, so "jpeg" matched the installed "jpeg-turbo" and the script
+# decided jpeg was already there. Tap-qualified names (derailed/k9s/k9s)
+# are compared on their last component, which is how brew lists them.
+#
+# A failing brew command is reported and skipped rather than silently
+# swallowed — some steps below depend on third-party taps that may not
+# be present.
 function install_or_upgrade {
+  local cask_flag=""
   if [[ "$1" == "--cask" ]]; then
-    local cask_flag="--cask"
-    local package=$2
-  else
-    local cask_flag=""
-    local package=$1
+    cask_flag="--cask"
+    shift
   fi
 
-  if [[ "$cask_flag" == "--cask" ]]; then
-    brew list --cask | grep $package > /dev/null
+  local installed package
+  if [[ -n "$cask_flag" ]]; then
+    installed="$(brew list --cask 2>/dev/null)"
   else
-    brew ls | grep $package > /dev/null
+    installed="$(brew list --formula 2>/dev/null)"
   fi
 
-  if (($? == 0)); then
-    brew upgrade $cask_flag $package
-  else
-    brew install $cask_flag $package
-  fi
+  for package in "$@"; do
+    if grep -qxF -- "${package##*/}" <<< "$installed"; then
+      brew upgrade $cask_flag "$package" || echo "  ! brew upgrade ${cask_flag:+$cask_flag }$package failed — skipping"
+    else
+      brew install $cask_flag "$package" || echo "  ! brew install ${cask_flag:+$cask_flag }$package failed — skipping"
+    fi
+  done
 }
 
 echo "Welcome to the dotfiles installation script!"
@@ -69,8 +81,10 @@ sudo xcodebuild -license accept
 echo "------------------------------"
 echo "Installing basic libraries..."
 sudo chown -R $USER:admin /usr/local
-install_or_upgrade "openssl"
-install_or_upgrade "openssl@1.1"
+# openssl@3 explicitly: "openssl" is an alias for it, and openssl@1.1
+# was dropped on 2026-08-28 (EOL upstream, ruby-build builds against
+# openssl@3 fine, `brew uses --installed openssl@1.1` returns nothing).
+install_or_upgrade "openssl@3"
 install_or_upgrade "libxml2"
 install_or_upgrade "libxslt"
 install_or_upgrade "libiconv"
@@ -88,7 +102,8 @@ install_or_upgrade "--cask" "font-hack-nerd-font"
 
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-gem install colorls
+# (colorls is installed in the Ruby section below — running `gem` here
+# would hit the macOS system Ruby, which asdf replaces.)
 
 echo "------------------------------"
 echo "image and media tools"
@@ -96,7 +111,7 @@ echo "image and media tools"
 #image optim
 install_or_upgrade "ghostscript"
 install_or_upgrade "imagemagick"
-install_or_upgrade "gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant advancecomp agg"
+install_or_upgrade gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant advancecomp agg
 install_or_upgrade "ffmpeg"
 
 
@@ -124,8 +139,9 @@ else
   fi
 fi
 
-if ask_to_install "Java"; then
-  install_or_upgrade "--cask" "java"
+if ask_to_install "Java (Temurin JDK)"; then
+  # The `java` cask was removed from Homebrew; temurin is the successor.
+  install_or_upgrade "--cask" "temurin"
 fi
 
 # --- Node.js, via asdf's nodejs plugin (target stack) ---
@@ -156,9 +172,10 @@ if ask_to_install "Ruby and Rails (via asdf)"; then
   asdf plugin add ruby 2>/dev/null
   asdf install ruby latest
   asdf set ruby latest --home
-  gem install bundler pry hub
+  gem install bundler pry
   gem install rails
   gem install jekyll
+  gem install colorls
 fi
 
 if ask_to_install "Elixir"; then
@@ -193,14 +210,13 @@ if ask_to_install "Git tools (lolcommits, gitmoji)"; then
   npm i -g gitmoji-cli
 fi
 
-if ask_to_install "Bash completion and "; then
+if ask_to_install "bash-completion"; then
   install_or_upgrade "bash-completion"
 fi
 
-if ask_to_install "ngrok "; then
+if ask_to_install "ngrok"; then
   install_or_upgrade "ngrok"
 fi
-ngrok
 
 
 echo "------------------------------"
@@ -208,14 +224,14 @@ echo "Installing devops tools: HashiCorp vault, Docker, Kubernetes..."
 
 if ask_to_install "HashiCorp tools (Vault)"; then
   brew tap hashicorp/tap
-  arch -arm64 brew install hashicorp/tap/vault
+  install_or_upgrade "hashicorp/tap/vault"
 fi
 
-if ask_to_install "Docker, Ansible, and Terraform"; then
-  install_or_upgrade "--cask" "docker"
+if ask_to_install "Docker Desktop, Ansible, and Terraform"; then
+  install_or_upgrade "--cask" "docker-desktop"
   install_or_upgrade "ansible"
   brew tap hashicorp/tap
-  brew install hashicorp/tap/terraform
+  install_or_upgrade "hashicorp/tap/terraform"
 fi
 
 if ask_to_install "colima and the docker CLI (Docker Desktop alternative — same daemon, no GUI, preferred on the Mac mini server)"; then
@@ -224,7 +240,7 @@ if ask_to_install "colima and the docker CLI (Docker Desktop alternative — sam
 fi
 
 if ask_to_install "Kubernetes tools (kubectl, helm, k9s, kind, kubeseal)"; then
-  install_or_upgrade "kubectl"
+  install_or_upgrade "kubernetes-cli"
   install_or_upgrade "helm"
   install_or_upgrade "derailed/k9s/k9s"
   install_or_upgrade "kind"
@@ -250,12 +266,6 @@ fi
 
 if ask_to_install "GCP CLI"; then
   install_or_upgrade "--cask" "gcloud-cli"
-fi
-
-brew install --cask gcloud-cli
-
-if ask_to_install "GCP CLI"; then
-  brew install --cask google-cloud-sdk
 fi
 
 if ask_to_install "asciinema and asciicast2gif tools"; then
@@ -289,12 +299,15 @@ if ask_to_install "databases and datastores"; then
   fi
 
   if ask_to_install "PostgreSQL"; then
-    install_or_upgrade "postgresql"
+    # Explicit major: "postgresql" is only an alias for the current one,
+    # so the version installed would silently change over time.
+    install_or_upgrade "postgresql@18"
   fi
 
   if ask_to_install "MongoDB"; then
     brew tap mongodb/brew
-    install_or_upgrade "mongodb-community@5.0"
+    # 5.0 reached end of life in October 2024.
+    install_or_upgrade "mongodb-community"
   fi
 
   if ask_to_install "Redis"; then
@@ -307,10 +320,12 @@ if ask_to_install "databases and datastores"; then
     install_or_upgrade "elastic/tap/elasticsearch-full"
     install_or_upgrade "elastic/tap/apm-server-full"
   fi
-  if ask_to-install "mqttx"; then
-    install_or_upgrade "--cask"" mqttx"
+  if ask_to_install "MQTTX"; then
+    install_or_upgrade "--cask" "mqttx"
   fi
 
+  # mqttx-cli is not in homebrew/core — it needs its upstream tap, which
+  # isn't set up here. install_or_upgrade reports the failure and moves on.
   if ask_to_install "mqttx-cli"; then
     install_or_upgrade "mqttx-cli"
   fi
@@ -349,7 +364,6 @@ if ask_to_install "developer applications"; then
 
   if ask_to_install "sublime text editor"; then
     install_or_upgrade "--cask" "sublime-text"
-    apm install file-icons
   fi
 
   if ask_to_install "VS code"; then
@@ -377,7 +391,7 @@ if ask_to_install "AI applications"; then
   echo "------------------------------"
   echo "Installing AI apps: Ollama, cursor..."
 
-  install_or_upgrade "--cask" "ollama"
+  install_or_upgrade "--cask" "ollama-app"
   install_or_upgrade "--cask" "chatgpt"
   install_or_upgrade "--cask" "claude"
   install_or_upgrade "--cask" "lm-studio"
@@ -386,7 +400,7 @@ if ask_to_install "AI applications"; then
   install_or_upgrade "--cask" "codex"
   install_or_upgrade "--cask" "codexbar"
   install_or_upgrade "portaudio"
-  install_or_upgrade "cursor"
+  install_or_upgrade "--cask" "cursor"
 
   if ask_to_install "OpenHands and specify-cli (via uv tool)"; then
     uv tool install openhands
@@ -453,6 +467,9 @@ if ask_to_install "miscellaneous applications"; then
       install_or_upgrade "--cask" "raspberry-pi-imager"
     fi
 
+    # goplaces is not in homebrew/cask — it ships from a third-party tap
+    # that isn't set up here (it is on the Mac mini). The step reports the
+    # failure rather than aborting.
     if ask_to_install "Goplaces"; then
       install_or_upgrade "--cask" "goplaces"
     fi
