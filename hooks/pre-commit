@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Runs shellcheck over the shell scripts being committed.
+#
+# Wired up with `git config core.hooksPath hooks` (configure_dotfiles.sh
+# does this). Bypass a single commit with `git commit --no-verify`, and
+# override the strictness with SHELLCHECK_SEVERITY=warning git commit.
+#
+# Written for bash 3.2, the version macOS still ships at /bin/bash.
+
+if ! command -v shellcheck > /dev/null 2>&1; then
+  echo "pre-commit: shellcheck not found, skipping the shell lint."
+  echo "            install it with: brew install shellcheck"
+  exit 0
+fi
+
+# info catches the unquoted-expansion class (SC2086) that has already
+# bitten install-deps.sh; style is the pedantic tier and stays off.
+severity="${SHELLCHECK_SEVERITY:-info}"
+
+files=()
+while IFS= read -r -d '' file; do
+  case "$file" in
+    *.sh)
+      files+=("$file")
+      ;;
+    *)
+      # Extensionless scripts, recognised by the shebang of the staged
+      # content rather than whatever is in the working tree.
+      if git show ":$file" 2>/dev/null | head -n 1 | grep -qE '^#!.*/(env +)?(ba|k|z)?sh\b'; then
+        files+=("$file")
+      fi
+      ;;
+  esac
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+
+if [ ${#files[@]} -eq 0 ]; then
+  exit 0
+fi
+
+# Lint the staged content, not the working tree: a partially staged file
+# has to be judged on what is actually going into the commit.
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+for file in "${files[@]}"; do
+  mkdir -p "$tmpdir/$(dirname "$file")"
+  git show ":$file" > "$tmpdir/$file" || exit 1
+done
+
+if (cd "$tmpdir" && shellcheck -S "$severity" -- "${files[@]}"); then
+  exit 0
+fi
+
+echo
+echo "pre-commit: shellcheck -S $severity flagged the staged content above."
+echo "            fix it, or commit anyway with: git commit --no-verify"
+exit 1

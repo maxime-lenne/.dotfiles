@@ -46,7 +46,7 @@ ask() {
     return 0
   fi
   local choice
-  read -p "${BOLD}$prompt (y/n): ${RESET}" choice
+  read -r -p "${BOLD}$prompt (y/n): ${RESET}" choice
   case "$choice" in
     y|Y) return 0 ;;
     *) return 1 ;;

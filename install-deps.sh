@@ -71,7 +71,7 @@ echo ""
 echo "Installing Homebrew..."
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-sudo chown -R $(whoami):admin /opt/homebrew
+sudo chown -R "$(whoami):admin" /opt/homebrew
 
 echo "------------------------------"
 echo "Installing Xcode Command Line Tools."
@@ -80,7 +80,7 @@ sudo xcodebuild -license accept
 
 echo "------------------------------"
 echo "Installing basic libraries..."
-sudo chown -R $USER:admin /usr/local
+sudo chown -R "$USER:admin" /usr/local
 # openssl@3 explicitly: "openssl" is an alias for it, and openssl@1.1
 # was dropped on 2026-08-28 (EOL upstream, ruby-build builds against
 # openssl@3 fine, `brew uses --installed openssl@1.1` returns nothing).
@@ -101,7 +101,7 @@ echo "fonts and terminal customization"
 install_or_upgrade "--cask" "font-hack-nerd-font"
 
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
 # (colorls is installed in the Ruby section below — running `gem` here
 # would hit the macOS system Ruby, which asdf replaces.)
 
@@ -212,6 +212,12 @@ fi
 
 if ask_to_install "bash-completion"; then
   install_or_upgrade "bash-completion"
+fi
+
+# hooks/pre-commit lints this repo's shell scripts with it; without it
+# the hook prints a note and lets the commit through.
+if ask_to_install "shellcheck (shell linter, used by the repo's pre-commit hook)"; then
+  install_or_upgrade "shellcheck"
 fi
 
 if ask_to_install "ngrok"; then

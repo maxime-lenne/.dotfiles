@@ -59,6 +59,36 @@ chmod 755 configure_dotfiles.sh
 ./configure_dotfiles.sh
 ```
 
+`configure_dotfiles.sh` also points git at this repo's own hooks — see
+below.
+
+## Git hooks (`hooks/`)
+
+`hooks/pre-commit` runs `shellcheck` over the shell scripts in a commit
+before it lands. The scripts here are the only thing standing between a
+machine rebuild and the drift documented in the
+[audits](#system-inventories--audits), and every defect found in
+`install-deps.sh` on 2026-08-28 — unquoted expansions, a typo'd
+function name, a package name Homebrew had removed — is the kind
+shellcheck catches for free.
+
+How it behaves:
+
+- It lints the **staged** content, not the working tree, so a
+  partially-staged file is judged on what actually goes into the commit.
+- It picks up `*.sh` plus any extensionless file whose staged content
+  starts with a shell shebang.
+- Severity is `info` by default — that tier includes SC2086
+  (unquoted expansion), the class of bug that was actually present.
+  Override per commit with `SHELLCHECK_SEVERITY=warning git commit`.
+- No shellcheck installed? It says so and lets the commit through
+  rather than blocking work on a machine that hasn't been set up.
+- Bypass a single commit with `git commit --no-verify`.
+
+`core.hooksPath` lives in `.git/config`, which isn't versioned, so a
+fresh clone needs `./configure_dotfiles.sh` (or
+`git config core.hooksPath hooks`) once before the hook does anything.
+
 ## Shared script helpers (`dotfiles-lib.sh`)
 
 `clean-mac.sh` and `install-deps.sh` both need to know the machine's

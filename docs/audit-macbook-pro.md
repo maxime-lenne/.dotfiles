@@ -303,10 +303,19 @@ here has been actioned yet.
     couldn't be identified from here, so the steps carry a comment and
     now fail loudly instead of aborting the run.
 
-    Worth adding: **`shellcheck` in CI or a pre-commit hook**. Every
-    defect above is one it catches, and this script is the only thing
-    standing between a rebuild and the drift the rest of this audit
-    documents.
+    **Follow-up, done 2026-08-29: `shellcheck` is now wired in as a
+    pre-commit hook** (`hooks/pre-commit`, enabled via
+    `core.hooksPath`, which `configure_dotfiles.sh` sets on a fresh
+    clone). It lints the staged content rather than the working tree,
+    defaults to `-S info` so it catches the unquoted-expansion class,
+    and degrades to a notice when shellcheck isn't installed. The four
+    existing scripts were brought to a clean baseline first — a hook
+    that fails on day one gets bypassed forever: a missing shebang in
+    `configure_dotfiles.sh` (a blank first line meant it was never a
+    shebang at all, so the script ran under whatever shell invoked it),
+    `read` without `-r` in `dotfiles-lib.sh`, and three unquoted
+    expansions in `install-deps.sh` including both `sudo chown -R`
+    calls.
 14. ~~Uncommitted drift in the working tree.~~ **Done — committed on
     2026-08-28**, together with the item-6 migration. What went in:
     `EDITOR=atom` → `vim`, the Antigravity `PATH` line its installer
