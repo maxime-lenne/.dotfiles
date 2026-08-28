@@ -24,7 +24,7 @@ dependencies (image/codec libs pulled in by ffmpeg/imagemagick,
 Python/crypto libs, etc.) — not listed individually, see `brew leaves`
 for the live list.
 
-- **Languages/runtimes**: asdf, go, python@3.13, elixir, yarn
+- **Languages/runtimes**: asdf, go, python@3.14, elixir, yarn
 - **DevOps/cloud/infra**: docker, colima, ansible, kubernetes-cli (kubectl), helm, kind, kubeseal, k9s, terraform, vault, cloudflared, scw (Scaleway CLI), macmon
 - **Git/dev tooling**: git, git-lfs, git-filter-repo, gh, hub, bash-completion, pnpm, coreutils, automake, pkgconf
 - **Media/image processing**: imagemagick, ghostscript, gifsicle, jhead, jpeg, jpegoptim, optipng, pngcrush, pngquant, advancecomp, agg, portaudio
@@ -102,8 +102,11 @@ or track it:
 ### Background services (`brew services list`)
 
 `cloudflared`, `colima`, `nginx`, `unbound`, `vault` are installed but
-not currently running. `dnsmasq` is loaded but in **error** state
-(last run failed) — worth checking if it's actually needed.
+not currently running. `dnsmasq` runs as a root system daemon (see
+item 5 below) — it no longer shows up correctly in a non-`sudo`
+`brew services list` (reports `none` even though it's up), since that
+only inspects the user launchd domain; use `sudo brew services list`
+for accurate status.
 
 ## Audit & recommendations
 
@@ -136,10 +139,22 @@ marked **Done** were actioned on 2026-08-28.
 4. **Xcode-beta.app (3.6 GB)** — a beta of Apple's IDE on a machine
    that's meant to run headless. Remove unless actively used for
    iOS/macOS beta testing.
-5. **`dnsmasq` service in error state.** Either fix it (`brew services
-   restart dnsmasq` and check logs) or remove it if it's not actually
-   used — a broken DNS resolver service sitting on a server is worth
-   resolving one way or the other, not leaving silently broken.
+5. ~~`dnsmasq` service in error state.~~ **Done.** It was loaded as a
+   *user* LaunchAgent (`~/Library/LaunchAgents/homebrew.mxcl.dnsmasq.plist`),
+   but its config binds port 53 (`port=53`, serving `*.white-wood.local`
+   → `192.168.1.71` for the LAN), which only root can do — hence the
+   permission-denied failure. Fixed on 2026-08-28 by stopping the
+   user-level service and starting it as a root system daemon instead
+   (`brew services stop dnsmasq` then `sudo brew services start dnsmasq`
+   — the matching `/Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist`
+   was already present, just not the one loaded). Verified with
+   `dig @192.168.1.71 test.white-wood.local` resolving correctly.
+   Running it as root took `root:admin` ownership of some Cellar paths
+   (`/opt/homebrew/Cellar/dnsmasq/...`, `/opt/homebrew/opt/dnsmasq`,
+   `/opt/homebrew/var/homebrew/linked/dnsmasq`) — a future
+   `brew upgrade`/`reinstall`/`uninstall dnsmasq` run as a normal user
+   will need `sudo rm` on those paths first, per Homebrew's own
+   warning.
 6. ~~Stale system-Ruby gems.~~ **Done.** `~/.gem` (91 MB, under the old
    system Ruby, orphaned since asdf owns `ruby` 3.3.5) removed.
 7. **Hardware-vendor apps installed unconditionally** (DDPM, Nanoleaf
@@ -160,12 +175,11 @@ marked **Done** were actioned on 2026-08-28.
    App Store app list were added to `install-deps.sh` on 2026-08-28,
    but that step hasn't been run on this machine yet, so `mas` itself
    still isn't installed and `mas outdated` doesn't work until it is.
-10. **`python@3.13`** is installed on request but, now that
-    `openai-whisper`/`pytorch`/`numpy` are gone (see below), `brew
-    uses --installed python@3.13` returns nothing — it's fully
-    orphaned and safe to `brew uninstall python@3.13`. `python@3.14`
-    stays: `ansible` and `gcloud-cli` both depend on it. Re-checked on
-    2026-08-28 — still orphaned, still installed, still pending.
+10. ~~`python@3.13` orphaned.~~ **Done.** Now that
+    `openai-whisper`/`pytorch`/`numpy` were gone (see item 12), `brew
+    uses --installed python@3.13` returned nothing — fully orphaned.
+    Uninstalled on 2026-08-28 (`brew uninstall python@3.13`).
+    `python@3.14` stays: `ansible` and `gcloud-cli` both depend on it.
 11. **`macmon`, `summarize`, `mqttx-cli`** and a few other niche
     formulae are worth a quick "do I still use this" pass next time
     `clean-mac.sh` runs `brew autoremove` — small individually, but
