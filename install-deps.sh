@@ -326,6 +326,10 @@ if ask_to_install "developer applications"; then
     install_or_upgrade "--cask" "visual-studio-code"
   fi
 
+  if ask_to_install "Zed editor"; then
+    install_or_upgrade "--cask" "zed"
+  fi
+
   if ask_to_install "JetBrains IDEs (WebStorm, PhpStorm)"; then
     install_or_upgrade "--cask" "jetbrains-toolbox"
   fi
@@ -402,6 +406,14 @@ if ask_to_install "miscellaneous applications"; then
   if ask_to_install "Other personal setup"; then
     if ask_to_install "Music (Spotify)"; then
       install_or_upgrade "--cask" "spotify"
+    fi
+
+    if ask_to_install "VLC media player"; then
+      install_or_upgrade "--cask" "vlc"
+    fi
+
+    if ask_to_install "Raspberry Pi Imager"; then
+      install_or_upgrade "--cask" "raspberry-pi-imager"
     fi
   fi
 fi
