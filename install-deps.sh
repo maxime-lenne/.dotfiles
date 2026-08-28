@@ -66,9 +66,15 @@ echo "------------------------------"
 echo "Installing basic libraries..."
 sudo chown -R $USER:admin /usr/local
 install_or_upgrade "openssl"
+install_or_upgrade "openssl@1.1"
 install_or_upgrade "libxml2"
 install_or_upgrade "libxslt"
 install_or_upgrade "libiconv"
+install_or_upgrade "libksba"
+install_or_upgrade "zlib"
+install_or_upgrade "coreutils"
+install_or_upgrade "automake"
+install_or_upgrade "pkgconf"
 
 echo "------------------------------"
 echo "fonts and terminal customization"
@@ -86,7 +92,7 @@ echo "image and media tools"
 #image optim
 install_or_upgrade "ghostscript"
 install_or_upgrade "imagemagick"
-install_or_upgrade "gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant"
+install_or_upgrade "gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant advancecomp agg"
 install_or_upgrade "ffmpeg"
 
 
@@ -129,7 +135,7 @@ if [ "$MACHINE_ROLE" = "workstation" ]; then
   if ask_to_install "nvm and pnpm/yarn (legacy/optional — asdf + bun already cover Node.js)"; then
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
     install_or_upgrade "pnpm"
-    # install_or_upgrade "yarn"
+    install_or_upgrade "yarn"
   fi
 else
   echo "Server role: skipping nvm/pnpm/yarn (legacy, superseded by asdf/bun)."
@@ -179,6 +185,10 @@ if ask_to_install "PHP Composer"; then
   install_or_upgrade "composer"
 fi
 
+if ask_to_install "Go"; then
+  install_or_upgrade "go"
+fi
+
 
 echo "------------------------------"
 echo "Installing developer tools: Git and bash completion."
@@ -187,6 +197,8 @@ if ask_to_install "Git and GitHub CLI"; then
   install_or_upgrade "git"
   install_or_upgrade "hub"
   install_or_upgrade "gh"
+  install_or_upgrade "git-lfs"
+  install_or_upgrade "git-filter-repo"
 fi
 
 if ask_to_install "Git tools (lolcommits, gitmoji)"; then
@@ -220,10 +232,17 @@ if ask_to_install "Docker, Ansible, and Terraform"; then
   brew install hashicorp/tap/terraform
 fi
 
-if ask_to_install "Kubernetes tools (kubectl, helm, k9s)"; then
+if ask_to_install "colima and the docker CLI (Docker Desktop alternative — same daemon, no GUI, preferred on the Mac mini server)"; then
+  install_or_upgrade "colima"
+  install_or_upgrade "docker"
+fi
+
+if ask_to_install "Kubernetes tools (kubectl, helm, k9s, kind, kubeseal)"; then
   install_or_upgrade "kubectl"
   install_or_upgrade "helm"
   install_or_upgrade "derailed/k9s/k9s"
+  install_or_upgrade "kind"
+  install_or_upgrade "kubeseal"
 fi
 
 echo "------------------------------"
@@ -237,6 +256,10 @@ fi
 
 if ask_to_install "Scaleway CLI"; then
   install_or_upgrade "scw"
+fi
+
+if ask_to_install "Cloudflare Tunnel (cloudflared)"; then
+  install_or_upgrade "cloudflared"
 fi
 
 if ask_to_install "GCP CLI"; then
@@ -253,6 +276,22 @@ if ask_to_install "asciinema and asciicast2gif tools"; then
   # cast and gif from terminal
   install_or_upgrade "asciinema"
   npm i -g asciicast2gif
+fi
+
+if ask_to_install "Misc CLI tools (macmon, summarize, swiftformat, swiftlint, xcodegen, sentry-wizard, pandoc, terraformer)"; then
+  install_or_upgrade "macmon"
+  install_or_upgrade "summarize"
+  install_or_upgrade "swiftformat"
+  install_or_upgrade "swiftlint"
+  install_or_upgrade "xcodegen"
+  install_or_upgrade "sentry-wizard"
+  install_or_upgrade "pandoc"
+  install_or_upgrade "terraformer"
+fi
+
+if ask_to_install "Local network services (dnsmasq, nginx)"; then
+  install_or_upgrade "dnsmasq"
+  install_or_upgrade "nginx"
 fi
 
 if ask_to_install "databases and datastores"; then
@@ -284,6 +323,10 @@ if ask_to_install "databases and datastores"; then
   fi
   if ask_to-install "mqttx"; then
     install_or_upgrade "--cask"" mqttx"
+  fi
+
+  if ask_to_install "mqttx-cli"; then
+    install_or_upgrade "mqttx-cli"
   fi
 fi
 
@@ -354,8 +397,15 @@ if ask_to_install "AI applications"; then
   install_or_upgrade "aider"
   install_or_upgrade "--cask" "claude-code"
   install_or_upgrade "--cask" "codex"
+  install_or_upgrade "--cask" "codexbar"
   install_or_upgrade "portaudio"
   install_or_upgrade "cursor"
+
+  if ask_to_install "OpenHands and specify-cli (via uv tool)"; then
+    uv tool install openhands
+    uv tool install openhands-acp
+    uv tool install specify-cli
+  fi
 fi
 
 
@@ -414,6 +464,14 @@ if ask_to_install "miscellaneous applications"; then
 
     if ask_to_install "Raspberry Pi Imager"; then
       install_or_upgrade "--cask" "raspberry-pi-imager"
+    fi
+
+    if ask_to_install "Goplaces"; then
+      install_or_upgrade "--cask" "goplaces"
+    fi
+
+    if ask_to_install "Stats (menu bar system monitor)"; then
+      install_or_upgrade "--cask" "stats"
     fi
   fi
 fi
