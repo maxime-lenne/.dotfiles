@@ -11,6 +11,3 @@ for name in .{aliases,bash_profile,bash_prompt,bashrc,exports,functions,gitconfi
   echo "-----> Symlinking $source to $target"
   ln -s "$source" "$target"
 done
-
-echo "-----> Copy .dotfiles/.hyper.js to .hyper.js"
-ln -s ".dotfiles/.hyper.js" ".hyper.js"

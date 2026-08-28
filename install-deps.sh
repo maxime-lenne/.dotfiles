@@ -307,11 +307,10 @@ fi
 
 if ask_to_install "developer applications"; then
   echo "------------------------------"
-  echo "Installing Developer apps: Hyper terminal, Atom, IDEs..."
+  echo "Installing Developer apps: Ghostty, IDEs, Postman..."
 
-  if ask_to_install "Hyper terminal"; then
-    install_or_upgrade "--cask" "hyper"
-    hyper i hyper-electron-highlighter
+  if ask_to_install "Ghostty terminal"; then
+    install_or_upgrade "--cask" "ghostty"
   fi
 
   if ask_to_install "GPG Suite"; then
@@ -338,13 +337,6 @@ if ask_to_install "developer applications"; then
   if ask_to_install "GitHub Desktop"; then
     install_or_upgrade "--cask" "github"
   fi
-fi
-
-if ask_to_install "nocode applications"; then
-  echo "------------------------------"
-  echo "Installing nocode apps: Airtable..."
-
-  install_or_upgrade "--cask" "airtable"
 fi
 
 if ask_to_install "AI applications"; then
@@ -386,8 +378,7 @@ if ask_to_install "miscellaneous applications"; then
     install_or_upgrade "--cask" "figma"
   fi
 
-  if ask_to_install "Note-taking and productivity apps (Evernote, Typora, Notion, Miro)"; then
-    # install_or_upgrade "--cask" "evernote"
+  if ask_to_install "Note-taking and productivity apps (Typora, Notion, Miro)"; then
     install_or_upgrade "--cask" "typora"
     install_or_upgrade "--cask" "notion"
     install_or_upgrade "--cask" "miro"
@@ -395,10 +386,6 @@ if ask_to_install "miscellaneous applications"; then
     install_or_upgrade "--cask" "superwhisper"
     # install_or_upgrade "asana"
     # Todo add slab
-  fi
-
-  if ask_to_install "Email client (Notion mail)"; then
-    install_or_upgrade "--cask" "notion-mail"
   fi
 
   if ask_to_install "Calendar client (Notion calendar)"; then
