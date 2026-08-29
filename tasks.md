@@ -55,3 +55,7 @@ json// .claude.json identique partout
 }
 Vu que tu as un Mac mini M4 Pro et probablement un MacBook, je te conseille Git + variables d'env pour garder la flexibilité tout en versionnant ta config.
 Tu veux que je t'aide à mettre ça en place ?
+
+- Ajout de l'export des variables d'env nécessaire au programe
+- Refacto et mise en commun entre bash et zsh de .aliasess, .profile, exports, .functions
+- 
