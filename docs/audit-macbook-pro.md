@@ -16,126 +16,185 @@ findings below are about **drift and hygiene** (things installed
 outside any package manager, tools installed twice, declared stack vs.
 actual stack, disk pressure), not about minimalism.
 
-## System inventory (MacBook Pro, snapshot 2026-08-28)
+## Inventaire système (MacBook Pro, relevé 2026-08-29)
 
-`Mac16,7`, macOS 26.7 (25G224), hostname `MacBook-Pro-de-Maxime`.
-Gathered from `brew leaves` / `brew list --installed-on-request`,
-`system_profiler SPApplicationsDataType` (macOS's own record of where
-each `.app` came from), and each language package manager's
-global-install list.
+`Mac16,7`, Apple M4 Pro, 48 Go de RAM, macOS 26.7 (25G224), hostname
+`MacBook-Pro-de-Maxime`.
 
-### Homebrew — formulae installed on request (48)
+Relevé par `.claude/skills/audit-machine/scripts/collect-machine-facts.sh`,
+qui agrège `brew list`, `system_profiler SPApplicationsDataType` (le
+registre macOS de la provenance de chaque `.app`) et la liste globale de
+chaque gestionnaire de paquets. Le script est en lecture seule et
+re-jouable : mieux vaut le relancer que faire confiance à ce document
+s'il a vieilli.
 
-`brew list --formula` totals 186; the other ~138 are transitive
-dependencies (image/codec libs pulled in by ffmpeg/imagemagick, crypto
-and Python libs, etc.) — see `brew leaves` for the live list.
+### Homebrew — formules installées explicitement (49)
 
-- **Version/package managers**: asdf, uv, pyenv
-- **Databases**: postgresql@14, postgresql@18, supabase (`supabase/tap`)
-- **DevOps/cloud/infra**: ansible, azure-cli, cloudflared, helm, kubernetes-cli (kubectl), k9s (`derailed/k9s`), terraform + vault (`hashicorp/tap`), scw (Scaleway CLI)
-- **Git/dev tooling**: git, gh, hub, bash-completion, coreutils, automake, pkgconf
-- **AI/LLM CLI**: aider, opencode (`anomalyco/tap`), llmfit
-- **Media/image processing**: ffmpeg, ghostscript, gifsicle, imagemagick, jhead, jpeg, jpegoptim, optipng, pngcrush, pngquant, poppler, portaudio
-- **iOS/mobile**: ideviceinstaller, libimobiledevice
-- **Misc CLI**: asciinema
-- **Kept for compatibility**: libiconv, libksba, libxml2, libxslt, libyaml, openssl@1.1 (deprecated upstream, still needed by ruby-build), openssl@3, zlib
+`brew list --formula` en totalise 149 ; la centaine restante, ce sont des
+dépendances transitives. Le relevé précédent annonçait 48 sur 186 : le
+seul ajout réel est `shellcheck`, et la chute du total (−37) vient du
+`brew cleanup`/`autoremove` de l'item 8.
 
-Note the tap formulae (k9s, terraform, vault, supabase, opencode) don't
-show up in a plain `brew leaves` listing even though
-`brew info` confirms `installed_on_request: true` for each — use
-`brew list --installed-on-request` alongside it, or they look like
-orphans when they aren't. `brew autoremove --dry-run` currently returns
-nothing, so there's no dependency-only cruft to reclaim.
+**Angle mort de Homebrew à connaître** : les formules issues d'un tap
+(`k9s`, `supabase`, `terraform`, `vault`) n'apparaissent **ni** dans
+`brew list --installed-on-request`, **ni** dans
+`brew info --json=v2 --installed` — alors qu'elles sont installées et sur
+le `PATH`. Le relevé précédent signalait déjà le problème pour
+`brew leaves` ; il est en fait plus large. Le compte de 49 les réintègre
+par différence avec `brew list --formula`, qui, lui, les voit. Tout
+inventaire futur doit faire pareil, sinon ces quatre outils passent pour
+désinstallés.
 
-### Homebrew — casks (42)
+- **Gestionnaires de versions/paquets** : asdf, uv, pyenv *(résiduel — item 18)*
+- **Bases de données** : postgresql@14, postgresql@18, supabase *(tap)*
+- **DevOps/cloud/infra** : ansible, azure-cli, cloudflared, helm, kubernetes-cli (kubectl), k9s *(tap)*, terraform + vault *(tap)*, scw (CLI Scaleway)
+- **Git/outillage dev** : git, gh, hub, bash-completion, coreutils, automake, pkgconf, shellcheck *(nouveau — c'est le linter du hook de pré-commit)*
+- **CLI IA/LLM** : aider, opencode *(tap)*, llmfit
+- **Média/image** : ffmpeg, ghostscript, gifsicle, imagemagick, jhead, jpeg, jpegoptim, optipng, pngcrush, pngquant, poppler, portaudio
+- **iOS/mobile** : ideviceinstaller, libimobiledevice
+- **Divers CLI** : asciinema
+- **Gardées pour compatibilité** : libiconv, libksba, libxml2, libxslt, libyaml, openssl@1.1 *(EOL, plus aucun dépendant — item 19)*, openssl@3, zlib
 
-- **AI tools**: chatgpt*, claude, codex, codexbar, copilot-cli, cursor, lm-studio, ollama-app, superwhisper
-- **Dev tools/IDE**: ghostty, wezterm, hyper, sublime-text, visual-studio-code, jetbrains-toolbox, postman, dbeaver-community*, github* (GitHub Desktop), mqttx, ngrok, gcloud-cli, gpg-suite, fuse-t, docker-desktop
-- **Browsers**: arc, firefox, google-chrome
-- **Communication**: discord, microsoft-teams, slack, telegram, zoom
-- **Productivity/notes**: airtable*, evernote*, miro, notion, notion-calendar, notion-mail*, typora, raycast
-- **Design**: figma
-- **Fonts**: font-hack-nerd-font
+`brew autoremove --dry-run` ne renvoie rien : aucune dépendance orpheline
+à récupérer.
 
-`*` = **orphaned registration**: Homebrew still records the cask as
-installed, but the `.app` it points to is gone from `/Applications`
-(deleted by hand rather than with `brew uninstall`). Six of them:
-`airtable`, `chatgpt`, `dbeaver-community`, `evernote`, `github`,
-`notion-mail` — see item 4 below.
+### Homebrew — casks (36)
+
+42 au relevé précédent. Les six disparus valident deux items : les cinq
+enregistrements fantômes désinscrits (`airtable`, `chatgpt`,
+`dbeaver-community`, `evernote`, `notion-mail` — item 5) et `hyper`,
+effectivement retiré (item 9).
+
+- **IA** : claude, codex, codexbar, copilot-cli, cursor, lm-studio, ollama-app, superwhisper
+- **Dev/IDE** : ghostty, wezterm, sublime-text, visual-studio-code, jetbrains-toolbox, postman, github\*, mqttx, ngrok, gcloud-cli, gpg-suite, fuse-t, docker-desktop
+- **Navigateurs** : arc, firefox, google-chrome
+- **Communication** : discord, microsoft-teams, slack, telegram, zoom
+- **Productivité/notes** : miro, notion, notion-calendar, typora, raycast
+- **Design** : figma
+- **Polices** : font-hack-nerd-font
+
+`*` = **enregistrement fantôme** : Homebrew tient le cask pour installé
+alors que le `.app` a disparu de `/Applications`. Il n'en reste qu'un,
+`github` (GitHub Desktop) — item 5.
+
+En retard : `codex`, `cursor`, `lm-studio`.
+
+Taps configurés : `anomalyco/tap`, `derailed/k9s`, `hashicorp/tap`,
+`macos-fuse-t/cask`, `steipete/tap`, `supabase/tap`.
 
 ### Mac App Store (17 apps)
 
-`mas` is **not installed on this machine** either (the `mas` step added
-to `install-deps.sh` on 2026-08-28 hasn't been run here), so these
-can't be listed or updated from the terminal: Airmail, Copilot,
-Developer, ExcalidrawZ, Keynote, Microsoft Excel, Microsoft OneNote,
-Microsoft Outlook, Microsoft PowerPoint, Microsoft Word, MindNode Next,
-Numbers, OneDrive, Pages, TestFlight, WhatsApp, Xcode.
+`mas` n'est toujours pas installé ici : ces apps restent invisibles à
+l'outillage Homebrew et non listables depuis le terminal. Le recoupement
+`system_profiler` en dénombre 17, inchangé — item 12.
 
-### Installed manually (not Homebrew, not the App Store)
+### Installé manuellement (ni Homebrew, ni App Store) — 26
 
-Downloaded/installed outside any package manager, so Homebrew and
-`clean-mac.sh` can't see, update or track them:
+Installés hors de tout gestionnaire de paquets : ni Homebrew ni
+`clean-mac.sh` ne peuvent les voir, les mettre à jour ou les suivre.
 
-- **Antigravity** (Google's agentic IDE) — also appended a `PATH` line to `.zshrc`. A cask exists.
-- **Zed**, **Stats**, **Timing** — casks exist for all three (Zed was adopted into Homebrew on the Mac mini on 2026-08-28; that was never done here).
-- **Microsoft Edge**, **Google Drive** (+ its Chrome-generated PWA shortcuts: Google Docs/Sheets/Slides) — vendor installers, casks exist. Both ship their own auto-updater LaunchAgents (`com.microsoft.EdgeUpdater.wake`, `com.google.keystone.agent`, `com.google.GoogleUpdater.wake`).
-- **Cloudflare WARP** — cask exists.
-- **ChatGPT Classic.app** — an older/renamed ChatGPT build; the `chatgpt` cask's target (`/Applications/ChatGPT.app`) no longer exists, so these two are almost certainly the same install gone out of sync.
-- **Claude Code CLI** — installed by its own installer under `~/Library/Application Support/Claude/claude-code/2.1.237`, plus the auto-generated **Claude Code URL Handler.app**. A `claude-code` cask exists and is what the Mac mini uses.
-- **GitHub Copilot.app**, **Fireflies**, **Paper**, **Pencil** — direct downloads.
-- **JetBrains IDEs** (WebStorm, PyCharm, RubyMine, DataGrip, in `~/Applications`) — managed by JetBrains Toolbox, itself a Homebrew cask.
-- **Hardware-vendor utilities**: DDPM (Dell Display and Peripheral Manager — drives the U4025QW, including its KVM), Logi Options+ / LogiPluginService, Nanoleaf Desktop, Reachy Mini Control. Casks exist for `logi-options+` and `nanoleaf`.
-- **Not installs**: `N8Ninja.app` (×4) and `MuJoCo_(mjpython).app` only exist as Xcode DerivedData build products and inside a Python venv respectively — they're build output, not something to uninstall.
+- **Un cask existe** (item 11) : **Antigravity**, **Zed**, **Stats**, **Timing**, **Cloudflare WARP**, **Microsoft Edge**, **Google Drive**, **Nanoleaf Desktop**, **Logi Options+**, **Claude Code CLI** (+ son **Claude Code URL Handler.app** auto-généré).
+- **IDE JetBrains** (WebStorm, PyCharm, RubyMine, DataGrip, dans `~/Applications`) — gérés par JetBrains Toolbox, lui-même un cask.
+- **Téléchargements directs** : GitHub Copilot.app, Fireflies, Paper, Pencil, ChatGPT Classic.app.
+- **Utilitaires constructeur** : DDPM (Dell Display and Peripheral Manager — pilote le U4025QW, KVM compris), Logi Options+ / LogiPluginService, Nanoleaf Desktop, Reachy Mini Control.
+- **Ne sont pas des installs** : Google Docs/Sheets/Slides sont des raccourcis PWA générés par Chrome. GPG Keychain.app est un composant du cask `gpg-suite`, posé par son `.pkg` — il ressort ici parce qu'un cask `.pkg` ne déclare aucun artefact `app:`.
 
-### Language-level global installs
+Note de méthode : zoom, Microsoft Teams et fuse-t figuraient dans cette
+liste avant correction du collecteur. Ce sont des casks à base de `.pkg`,
+qui ne déclarent pas d'artefact `app:` ; ils sont bien gérés par Homebrew
+et **ne constituent pas des doublons**. Le collecteur les rattache
+désormais via les chemins nommés dans leurs strophes `uninstall`/`zap`.
 
-Updated 2026-08-28 after the item-6 migration below.
+### Installs globaux par langage
 
-- **asdf** 0.18.0 — plugins `nodejs` (24.20.0 home default, 22.11.0 also installed) and `ruby` (3.3.5 home default), pinned in `~/.tool-versions`. `node`, `npm`, `ruby` and `gem` all resolve through `~/.asdf/shims`.
-- **uv** 0.11.23 — owns Python: managed interpreters 3.13.15 and 3.14.0, plus the Homebrew `python@3.14` that `ansible`/`gcloud-cli` pull in as the bare `python3`.
-- **uv tool**: `aider-chat`, `mistral-vibe` (+ `vibe-acp`), `specify-cli`
-- **bun** 1.3.9 — installed (`~/.bun`), no global packages
-- **npm -g**: nothing. `@openai/codex` and `corepack` went with nvm; codex stays available through its Homebrew cask, which resolves audit item 7's duplicate.
-- **pnpm / cargo / go install / pipx**: nothing (`~/.cargo` and `~/go/bin` don't exist)
-- **nvm / pyenv / rvm**: **all removed.** `~/.nvm`, `~/.pyenv` and `~/.rvm` no longer exist, and nothing in the shell config ever initialised them.
-- **gem**: `~/.gem` (66 MB, cache-only, orphaned under the macOS system Ruby 2.6.10) is the last leftover — see item 6.
+- **asdf** 0.20.0 (0.18.0 au relevé précédent) — plugins `nodejs` (24.20.0 par défaut, 22.11.0 également installé) et `ruby` (3.3.5 par défaut), épinglés dans `~/.tool-versions`.
+- **uv** 0.12.7 — interpréteurs gérés 3.13.15 et 3.14.0, plus les `python@3.12`/`python@3.14` de Homebrew que tirent ansible et gcloud-cli.
+- **uv tool** : `aider-chat` 0.86.2, `mistral-vibe` 2.17.1 (+ `vibe-acp`). `specify-cli` a disparu depuis le relevé précédent.
+- **bun** 1.3.9 — aucun paquet global.
+- **npm -g** : `corepack` 0.35.0 et `npm` 11.19.0, sous le Node 24.20.0 d'asdf. Ce sont les deux paquets livrés avec Node, pas des installs délibérées.
+- **pnpm / yarn / cargo / go / pipx / composer** : aucun.
+- **Ruby** : 3.3.5 via les shims asdf, uniquement les gems par défaut. `~/.gem` **a été supprimé** : le reliquat de l'item 6 est soldé.
+- **nvm / pyenv / rvm** : `~/.nvm`, `~/.pyenv` et `~/.rvm` sont bien absents — mais la **formule Homebrew `pyenv` 2.8.4 est toujours installée** (item 18).
+- **Java** : aucun JDK. `java` est le stub macOS, qui échoue sur « Unable to locate a Java Runtime » ; `/Library/Java/JavaVirtualMachines/` est vide (item 20).
 
-### Background services (`brew services list`)
+### Services en arrière-plan (`brew services list`)
 
-`cloudflared`, `postgresql@14`, `postgresql@18` and `unbound` are
-installed; **none is running**.
+`cloudflared`, `postgresql@14` et `postgresql@18` sont installés ;
+**aucun ne tourne**. `unbound` a disparu depuis le relevé précédent.
 
-### Disk usage
+### Occupation disque
 
-**Snapshot 2026-08-28, after the first cleanup pass: 339 GB used of
-460 GB — 101 GB free (77% full)**, up from 37 GB free. The gain came
-from Ollama (41 GB of models removed) and caches (30 GB → 17 GB).
-Docker was *not* reclaimed. Largest remaining contributors:
+**Relevé 2026-08-29 : 317 Gio utilisés sur 460 — 123 Gio libres (73 %)**,
+contre 339 Go utilisés et 101 Go libres le 2026-08-28.
 
-| Item | Size | Status |
+Piège de mesure : sous APFS, `df -h /` porte sur le volume système scellé
+et affiche ~12 Gio quel que soit le remplissage réel. Le chiffre qui
+compte est celui de `/System/Volumes/Data`.
+
+| Poste | Taille | Évolution |
 |---|---|---|
-| `~/Library/Containers/com.docker.docker` (`Docker.raw`) | **67 GB** | **untouched** — still 128 GB apparent / 67 GB actual |
-| `~/Library/Caches` | 17 GB | was 30 GB |
-| JetBrains: 4 IDE bundles (11.8 GB) + `~/Library/Application Support/JetBrains` (8.7 GB) | 20.5 GB | untouched |
-| Xcode.app (4.0 GB) + `~/Library/Developer` (5.7 GB) | 9.7 GB | untouched |
-| `/opt/homebrew` (Cellar 4.5 GB, Caskroom 787 MB) | 6.3 GB | untouched |
-| `~/.cache` (uv 3.0 GB, chrome-devtools-mcp 295 MB) | 3.3 GB | untouched |
-| `~/.ollama` | 16 KB | was 41 GB — all 5 models removed |
-| Version managers: `.bun` 1.7 GB, `.asdf` ~600 MB | ~2.3 GB | `.pyenv`/`.nvm`/`.rvm` (1.4 GB) removed |
+| `~/Library/Containers/com.docker.docker` (`Docker.raw`) | **67 Go** | **inchangé** — 128 Go apparent / 67 Go réel |
+| `~/Library/Caches` | 17 Go | inchangé |
+| JetBrains (`~/Library/Application Support/JetBrains`) | 8,7 Go | inchangé |
+| `/opt/homebrew` | 6,2 Go | 6,3 Go |
+| `/Applications/Xcode.app` | 4,0 Go | inchangé |
+| `~/Library/Developer` | 3,7 Go | 5,7 Go (−2,0 Go) |
+| `~/.asdf` | 507 Mo | ~600 Mo |
+| `~/.cache` | 300 Mo | 3,3 Go (−3,0 Go) |
+| `~/.bun` | 58 Mo | 1,7 Go (−1,6 Go) |
+| `~/.ollama` | 32 Ko | 16 Ko |
 
-## Audit & recommendations
+### Dérive vis-à-vis de `install-deps.sh`
 
-Findings from the inventory above, roughly ordered by impact. Nothing
-here has been actioned yet.
+Comparaison dans les deux sens entre ce que porte la machine et ce que le
+script déclare. Ni Homebrew ni `clean-mac.sh` ne savent le faire, et
+c'est pourtant ce qui décide si une reconstruction reproduirait l'état
+actuel.
 
-1. ~~Disk is at 92% (37 GB free).~~ **Largely done — 101 GB free
-   (77%) as of 2026-08-28.** The ~64 GB recovered came from items 3 and
-   4; item 2 (Docker, 67 GB) is still outstanding and is now by a wide
-   margin the largest single thing on this disk.
-2. **Docker.raw is still 67 GB — NOT done.** Docker has been started
-   since (the file was written 2026-08-28 23:17) but the size hasn't
-   moved: 128 GB apparent, 67 GB actual. Pruning containers/images is
+**Installé mais non déclaré** — une reconstruction les perdrait :
+`azure-cli`, `supabase`, `ideviceinstaller`, `libimobiledevice`,
+`libyaml`, `llmfit`, `opencode`, `poppler`, `postgresql@14`, plus les
+casks `copilot-cli` et `fuse-t`.
+
+**Déclaré mais absent** — le script promet ce qui n'est pas là :
+`temurin` (Java), `mas`, `colima` et le CLI `docker`, `kind`, `kubeseal`.
+Côté casks, `claude-code`, `stats`, `timing`, `zed` et `google-drive` ne
+sont pas un manque mais l'autre face de l'item 11 : l'app est installée à
+la main, donc Homebrew ne la voit pas. Le reste (`alfred`, `gitter`,
+`goplaces`, `medis`, `raspberry-pi-imager`, `spotify`, `vlc`, et les
+bases mysql/redis/mongodb/elasticsearch) est derrière des prompts
+optionnels ou propre au Mac mini : absence normale.
+
+## Audit & recommandations
+
+Constats tirés de l'inventaire ci-dessus, classés par impact décroissant
+à leur création. La numérotation est stable : elle est citée dans les
+messages de commit, donc un item traité reste à sa place et un nouveau
+constat s'ajoute à la fin.
+
+### Où en est l'audit — relevé 2026-08-29
+
+**Soldés** : 3, 6, 13, 14 (partiel).
+**Partiels, qui ont bougé** : 1, 9, 15, 16.
+**Toujours ouverts, re-vérifiés et inchangés** : **2** (Docker, 67 Go —
+de loin le premier poste du disque, intact depuis trois relevés), **5**
+(cask fantôme `github`), **7** (aider en double), 4, 10, 11, 12, 17.
+**Rouvert** : 8 (`brew outdated` était retombé à zéro, il remonte à 3).
+**Nouveaux** : 18 à 21.
+
+Ce relevé n'a rien exécuté de correctif : l'audit constate, `clean-mac.sh`
+et `install-deps.sh` agissent.
+
+1. ~~Disk is at 92% (37 GB free).~~ **Largement traité — 123 Gio libres
+   (73 %) au 2026-08-29**, contre 101 Go (77 %) la veille et 37 Go à
+   l'origine. Les ~22 Go regagnés depuis viennent de `~/.cache`
+   (−3,0 Go), `~/.bun` (−1,6 Go) et `~/Library/Developer` (−2,0 Go), le
+   reste étant du `brew cleanup` (−37 formules transitives). L'item 2
+   (Docker, 67 Go) reste ouvert et pèse maintenant **plus de la moitié
+   de l'espace encore récupérable**.
+2. **Docker.raw fait toujours 67 Go — TOUJOURS PAS TRAITÉ.**
+   Re-mesuré le 2026-08-29 : 128 Go apparent, 67 Go réel, strictement
+   identique aux deux relevés précédents. Pruning containers/images is
    not enough on its own — Docker Desktop never shrinks the disk image
    by itself. Run `docker system df` to see what's in there, then
    `docker system prune -a --volumes` (destructive: removes unused
@@ -148,16 +207,19 @@ here has been actioned yet.
    5.2 GB, `mistral` 4.4 GB, `mxbai-embed-large` 669 MB). `~/.ollama` is
    down to 16 KB. Note the app itself is still installed and running, so
    any model needed later is one `ollama pull` away.
-4. ~~30 GB of `~/Library/Caches`.~~ **Partially done — down to
-   17 GB.** Worth a second pass on the two the standard cleanup
-   doesn't reach: Playwright's downloaded browsers
-   (`npx playwright uninstall --all`) and pip's cache
+4. ~~30 GB of `~/Library/Caches`.~~ **Partiel — descendu à 17 Go, et
+   toujours 17 Go au 2026-08-29 : la seconde passe n'a pas eu lieu.**
+   Elle porte sur les deux caches que le nettoyage standard n'atteint
+   pas : les navigateurs téléchargés par Playwright
+   (`npx playwright uninstall --all`) et le cache pip
    (`pip cache purge`).
-5. ~~Six casks registered but their app is gone.~~ **Five of six
-   done.** `airtable`, `chatgpt`, `dbeaver-community`, `evernote` and
-   `notion-mail` are deregistered. **`github` (GitHub Desktop) is still
-   registered at 3.5.4 with no app in `/Applications`** — finish it with
-   `brew uninstall --cask --force github`. Original finding:
+5. ~~Six casks registered but their app is gone.~~ **Cinq sur six
+   traités ; le sixième résiste.** `airtable`, `chatgpt`,
+   `dbeaver-community`, `evernote` et `notion-mail` sont désinscrits —
+   confirmé par la chute de 42 à 36 casks. **`github` (GitHub Desktop)
+   est toujours enregistré sans app dans `/Applications`**, re-détecté
+   automatiquement au relevé du 2026-08-29 ; à solder avec
+   `brew uninstall --cask --force github`. Constat d'origine :
    They pollute `brew outdated`, and any `brew upgrade` will happily
    *reinstall* apps that were deliberately deleted. Clear them with
    `brew uninstall --cask --force <token>` (add `--zap` only if the
@@ -205,11 +267,13 @@ here has been actioned yet.
    - **README**: the "Package managers" section now records the legacy
      three as removed rather than "being phased out".
 
-   One leftover: **`~/.gem` (66 MB) still needs deleting** — it holds
-   only 111 cached `.gem` files and the rubygems index under Ruby 2.6.0,
-   no installed gems and no binaries, and asdf's Ruby doesn't use it.
-   `rm -rf ~/.gem` (the same thing that was done on the Mac mini).
-7. **`aider` is still installed twice** — Homebrew formula
+   ~~One leftover: **`~/.gem` (66 MB) still needs deleting**~~ —
+   **fait : `~/.gem` n'existe plus au 2026-08-29.** L'item 6 est
+   entièrement soldé.
+7. **`aider` est toujours installé deux fois** — re-vérifié le
+   2026-08-29 : la formule Homebrew `aider` *et* `uv tool aider-chat`
+   v0.86.2 sont toutes deux présentes, inchangé. Détail d'origine :
+   Homebrew formula
    (`/opt/homebrew/bin/aider`) *and* `uv tool aider-chat`
    (`~/.local/bin/aider`, v0.86.2). `~/.local/bin` comes first on
    `PATH`, so the uv copy wins and the Homebrew one just goes stale
@@ -217,20 +281,24 @@ here has been actioned yet.
    recommends) and run `brew uninstall aider`. **The `codex` duplicate
    resolved itself**: the npm global went with nvm, leaving only the
    Homebrew cask at `/opt/homebrew/bin/codex`.
-8. ~~111 outdated formulae and 20 outdated casks.~~ **Done.**
-   `brew outdated` now returns zero of each. The thing that made this
-   necessary hasn't changed though — give `brew upgrade` a recurring
-   slot, or the same backlog rebuilds silently.
-9. **Editor and terminal sprawl.** Nine editors/IDEs (Cursor, VS Code,
-   Zed, Sublime Text, Antigravity + WebStorm/PyCharm/RubyMine/DataGrip)
-   and three terminals (Ghostty, WezTerm, Hyper). On a workstation this
-   is defensible — but **Hyper was explicitly retired** (its cask,
-   install step and tracked `.hyper.js` were removed from this repo on
-   2026-08-28) and is still installed here, and the `wezterm` cask
-   install is commented out in `install-deps.sh` while WezTerm remains
-   installed. Those two are drift, not choice. The four JetBrains IDEs
-   are 20.5 GB with Toolbox caches — Toolbox can also be told to keep
-   fewer old versions.
+8. ~~111 outdated formulae and 20 outdated casks.~~ **Traité le
+   2026-08-28, et déjà en train de se reconstituer** : `brew outdated`
+   affiche 3 casks en retard au 2026-08-29 (`codex`, `cursor`,
+   `lm-studio`). C'est exactement ce que l'item annonçait — la cause
+   n'ayant pas changé, le backlog remonte. Trois en un jour reste
+   trivial à traiter (`brew upgrade`), mais confirme qu'il faut lui
+   donner un créneau récurrent plutôt qu'une passe manuelle.
+9. **Editor and terminal sprawl.** ~~Trois terminaux (Ghostty, WezTerm,
+   Hyper)~~ — **Hyper a bien été désinstallé** (vérifié le 2026-08-29 :
+   plus de `Hyper.app`, plus de cask), ce qui solde la moitié de l'item.
+   **Reste la dérive `wezterm`** : le cask est installé alors que sa
+   ligne d'install est commentée dans `install-deps.sh` — soit on
+   décommente, soit on désinstalle, mais l'état actuel n'est reproductible
+   par personne. Le reste du constat tient : neuf éditeurs/IDE (Cursor,
+   VS Code, Zed, Sublime Text, Antigravity +
+   WebStorm/PyCharm/RubyMine/DataGrip), ce qui est défendable sur un
+   poste de travail. Les quatre IDE JetBrains pèsent 8,7 Go de caches
+   Toolbox — Toolbox sait aussi conserver moins d'anciennes versions.
 10. **AI-tool overlap is even wider here than on the Mac mini**: Claude,
     Claude Code, ChatGPT (×2 states), Codex (×2 installs), CodexBar,
     Copilot (App Store) + GitHub Copilot.app + `copilot-cli`, Cursor,
@@ -239,7 +307,22 @@ here has been actioned yet.
     which are actually in the daily loop; the ones that aren't are still
     running updaters and filling caches (copilot 616 MB, codexbar
     343 MB).
-11. **Ten apps installed by hand where a Homebrew cask exists**:
+
+    *Re-vérifié le 2026-08-29 : inchangé, à un retrait près —
+    `specify-cli` a disparu des `uv tool`. Tout le reste est toujours
+    là, y compris `ChatGPT Classic.app` à côté du cask `chatgpt`
+    désinscrit. Deux des trois casks en retard (`codex`, `lm-studio`)
+    appartiennent à cette famille : ce sont des outils qu'on ne lance
+    plus assez pour les tenir à jour, mais assez installés pour qu'ils
+    se mettent à jour tout seuls.*
+11. **Dix apps installées à la main alors qu'un cask existe** —
+    re-vérifié le 2026-08-29 : **les dix sont toujours dans cet état**,
+    aucune adoption n'a été faite. La comparaison avec `install-deps.sh`
+    le montre par l'autre bout : `stats`, `timing`, `zed`,
+    `google-drive` et `claude-code` sont **déclarés dans le script et
+    absents de Homebrew** — le script promet une install que la machine
+    a déjà, mais par un autre chemin. Constat d'origine :
+    **Ten apps installed by hand where a Homebrew cask exists**:
     Antigravity, Zed, Stats, Timing, Cloudflare WARP, Microsoft Edge,
     Google Drive, Nanoleaf Desktop, Logi Options+, Claude Code CLI.
     Same fix that was applied on the Mac mini:
@@ -248,7 +331,10 @@ here has been actioned yet.
     add them to `install-deps.sh` so `brew upgrade` and `clean-mac.sh`
     cover them. Bonus: it retires the per-vendor auto-updater
     LaunchAgents from Google and Microsoft.
-12. **No `mas`** — the 17 App Store apps are invisible to Homebrew
+12. **Toujours pas de `mas`** — re-vérifié le 2026-08-29 : la formule
+    n'est pas installée, alors que `install-deps.sh` la déclare. Les 17
+    apps App Store restent invisibles à l'outillage. Constat d'origine :
+    the 17 App Store apps are invisible to Homebrew
     tooling, exactly as on the Mac mini. The `install-deps.sh` step
     exists; it just needs running here. Its hardcoded list is also
     already stale relative to this machine (it installs Enchanted,
@@ -321,21 +407,92 @@ here has been actioned yet.
     `EDITOR=atom` → `vim`, the Antigravity `PATH` line its installer
     appended, and a commented-out `wezterm` cask line in
     `install-deps.sh` kept as a reminder next to the `ghostty` install.
-    Still open, and unrelated to any working-tree state:
-    `.zshrc` exports `BUNDLER_EDITOR="atom"` — Atom was discontinued in
-    2022, and now that `EDITOR` is `vim` this line is the last thing
-    still pointing at it.
-15. **Two PostgreSQL majors installed (14 and 18), neither running**,
-    plus `unbound` and `cloudflared` idle. If 14 is only kept for an old
-    project, dump what's needed and drop it; two majors also means two
-    data directories.
-16. **The iOS/mobile toolchain is ~10 GB** (Xcode 4.0 GB, CoreSimulator
-    3.5 GB, DerivedData 2.1 GB, plus `ideviceinstaller`/
-    `libimobiledevice`). The N8Ninja DerivedData builds show it's
-    genuinely used — but DerivedData and unused simulator runtimes are
-    pure cache: `xcrun simctl delete unavailable` and clearing
-    DerivedData reclaim most of it without touching the toolchain.
-17. **Minor fix for the sibling doc**: [audit-mac-mini.md](audit-mac-mini.md)
-    labels DDPM as "BenQ/Qisda monitor control". It's Dell's *Display
-    and Peripheral Manager* — the utility for the U4025QW, including its
-    KVM. Worth correcting there.
+    **Toujours ouvert, et pire que décrit** : `BUNDLER_EDITOR="atom"`
+    est présent **dans deux fichiers**, `.zshrc:55` *et* `.exports:21`.
+    Atom est arrêté depuis 2022, et maintenant qu'`EDITOR` vaut `vim`,
+    ces deux lignes sont les dernières à le désigner encore. Le doublon
+    illustre au passage la divergence bash/zsh que `tasks.md` veut
+    résorber : la même variable, définie deux fois, dans deux chaînes de
+    chargement différentes.
+15. ~~**Deux majeures PostgreSQL installées (14 et 18), aucune ne
+    tourne**, plus `unbound` et `cloudflared` au repos.~~ **Partiel :
+    `unbound` a été désinstallé** (vérifié le 2026-08-29). Restent les
+    deux PostgreSQL, toujours arrêtées, et `cloudflared`. Si la 14 n'est
+    gardée que pour un vieux projet, dumper ce qu'il faut et la retirer :
+    deux majeures, ce sont aussi deux répertoires de données. À noter,
+    `postgresql@14` fait partie des paquets **installés sans être
+    déclarés** dans `install-deps.sh`, qui ne connaît que la 18.
+16. ~~**La chaîne iOS/mobile pèse ~10 Go.**~~ **Partiel — descendue à
+    ~7,7 Go** (Xcode 4,0 Go inchangé, `~/Library/Developer` 3,7 Go
+    contre 5,7 Go). Les 2,0 Go regagnés viennent de DerivedData et des
+    runtimes de simulateur, c'est-à-dire du cache pur, exactement là où
+    l'item disait d'aller chercher. Le reste de la méthode tient pour
+    une seconde passe : `xcrun simctl delete unavailable` et vidage de
+    DerivedData récupèrent l'essentiel sans toucher à la toolchain, qui
+    est réellement utilisée (`ideviceinstaller`/`libimobiledevice` sont
+    installés, et les builds N8Ninja le confirment).
+17. **Correction à porter dans le document jumeau** — toujours à faire
+    au 2026-08-29 : [audit-mac-mini.md](audit-mac-mini.md) ligne 88
+    qualifie DDPM de « BenQ/Qisda monitor control ». C'est le *Dell
+    Display and Peripheral Manager*, l'utilitaire du U4025QW, KVM
+    compris.
+18. **La formule Homebrew `pyenv` 2.8.4 est toujours installée**, alors
+    que l'item 6 a retiré pyenv de la stack, que `~/.pyenv` n'existe
+    plus, que `install-deps.sh` ne l'installe plus et que le README le
+    déclare remplacé par `uv`. Le répertoire de données a été supprimé,
+    le paquet non — c'est le cas de figure exact que la section « legacy »
+    de `clean-mac.sh` est censée rattraper, sauf qu'elle teste
+    l'existence de `~/.pyenv` et pas celle de la formule. Deux
+    conséquences : `brew upgrade` continue de le maintenir, et il
+    réapparaîtra dans tout inventaire comme un gestionnaire de versions
+    concurrent d'asdf/uv. `brew uninstall pyenv` (rien n'en dépend), et
+    tant qu'à faire, faire tester la formule à `clean-mac.sh` et pas
+    seulement le répertoire.
+19. **`openssl@1.1` est toujours installé alors qu'il est EOL et que
+    plus rien n'en dépend.** `brew uses --installed openssl@1.1` ne
+    renvoie rien, et l'item 6 avait explicitement conclu qu'il pouvait
+    être retiré une fois Ruby rebâti contre `openssl@3` — ce qui a été
+    fait le 2026-08-28, `.zshrc` et `install-deps.sh` pointant tous deux
+    sur `openssl@3` depuis. Le retrait, lui, n'a jamais eu lieu.
+    `brew uninstall openssl@1.1`. Garder une bibliothèque crypto EOL
+    installée n'est pas neutre : elle reste sur le disque, elle se
+    proposera comme cible de link à toute compilation future, et elle
+    brouille la lecture de l'inventaire.
+20. **Aucun JDK n'est installé, et la config shell pointe sur un JDK
+    fantôme.** `java` est le stub macOS, qui répond « Unable to locate a
+    Java Runtime » ; `/Library/Java/JavaVirtualMachines/` est vide. Or
+    `install-deps.sh` déclare `temurin` (section « Java (Temurin JDK) »),
+    et surtout `.bash_profile:21` exporte
+    `JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/`
+    — un chemin qui n'existe pas — puis l'ajoute au `PATH` à la ligne
+    suivante. Java 10 est hors support depuis 2018. Deux issues, à
+    trancher plutôt qu'à laisser en l'état : soit Java sert encore et il
+    faut installer `temurin` puis pointer `JAVA_HOME` sur
+    `$(/usr/libexec/java_home)`, soit il ne sert plus et ces deux lignes
+    doivent disparaître de `.bash_profile`. À noter que ce `JAVA_HOME`
+    n'existe que côté bash : c'est un exemple de plus de la divergence
+    bash/zsh.
+21. **Onze paquets sont installés sans être déclarés dans
+    `install-deps.sh`** : `azure-cli`, `supabase`, `ideviceinstaller`,
+    `libimobiledevice`, `libyaml`, `llmfit`, `opencode`, `poppler`,
+    `postgresql@14`, plus les casks `copilot-cli` et `fuse-t`. Une
+    reconstruction de la machine à partir du dépôt ne les remettrait
+    pas. C'est la dérive la moins visible de toutes — rien ne casse, rien
+    ne prévient, et on ne s'en aperçoit que le jour où on repart d'un
+    disque vide. Décider pour chacun : soit il compte, et il rejoint le
+    script dans la bonne section (et derrière le bon rôle
+    `--server`/`--workstation`), soit il ne compte pas, et il se
+    désinstalle.
+22. **Angle mort méthodologique : les formules de tap échappent aux
+    inventaires de Homebrew.** `k9s`, `supabase`, `terraform` et `vault`
+    sont installées et sur le `PATH`, mais n'apparaissent **ni** dans
+    `brew list --installed-on-request`, **ni** dans
+    `brew info --json=v2 --installed`. Le relevé du 2026-08-28 le
+    signalait pour `brew leaves` en croyant `brew info` fiable ; il ne
+    l'est pas. Conséquence directe : le premier relevé automatisé les a
+    comptées comme désinstallées, et la comparaison avec
+    `install-deps.sh` les aurait déclarées « déclarées mais absentes »
+    alors qu'elles sont là. Le collecteur les récupère désormais par
+    différence avec `brew list --formula`, seul inventaire qui les voie.
+    À garder en tête pour toute vérification manuelle : `brew list
+    --versions <formule>` dit la vérité, les inventaires agrégés non.
