@@ -6,5 +6,33 @@
     { "serverName": "n8n-mcp-staging" },
     { "serverName": "pencil" },
     { "serverName": "sentry" }
-  ]
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-$HOME/.dotfiles}/.claude/hooks/no-plaintext-secrets.sh\"",
+            "timeout": 10,
+            "statusMessage": "Vérification des secrets en clair..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-$HOME/.dotfiles}/.claude/hooks/shellcheck-on-write.sh\"",
+            "timeout": 30,
+            "statusMessage": "shellcheck..."
+          }
+        ]
+      }
+    ]
+  }
 }

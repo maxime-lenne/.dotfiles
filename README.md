@@ -89,6 +89,29 @@ How it behaves:
 fresh clone needs `./configure_dotfiles.sh` (or
 `git config core.hooksPath hooks`) once before the hook does anything.
 
+## Claude Code hooks (`.claude/hooks/`)
+
+Not to be confused with `hooks/` above: that one holds the **git** hook
+(`core.hooksPath`), this one holds hooks that run inside a Claude Code
+session, wired in `.claude/settings.json`. Two of them:
+
+- **`shellcheck-on-write.sh`** (PostToolUse) lints a shell file the
+  moment it's written, instead of waiting for the commit. Same
+  `-S info` severity as the git hook, so the two agree; skips
+  `custom/plugins/` (vendored) and the rc files (no shebang, and
+  shellcheck reads zsh as sh and floods).
+- **`no-plaintext-secrets.sh`** (PreToolUse) refuses a write that would
+  put a literal credential into one of the tracked shell config files.
+  These are published to a public repo *and* symlinked into `$HOME`, so
+  a token pasted into `.exports` leaks on the next push and rewriting
+  history doesn't un-leak it. A reference (`"$MY_KEY"`, `$(...)`) is
+  allowed — that's the pattern to use, with the value in an
+  unversioned `~/.extra`.
+
+Both read the hook payload on stdin, need `jq` (macOS ships it at
+`/usr/bin/jq`), and fail open: if a dependency is missing they exit
+quietly rather than breaking the session.
+
 ## Shared script helpers (`dotfiles-lib.sh`)
 
 `clean-mac.sh` and `install-deps.sh` both need to know the machine's
