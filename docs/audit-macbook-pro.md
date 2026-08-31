@@ -28,11 +28,12 @@ chaque gestionnaire de paquets. Le script est en lecture seule et
 re-jouable : mieux vaut le relancer que faire confiance à ce document
 s'il a vieilli.
 
-### Homebrew — formules installées explicitement (49)
+### Homebrew — formules installées explicitement (47)
 
-`brew list --formula` en totalise 149 ; la centaine restante, ce sont des
-dépendances transitives. Le relevé précédent annonçait 48 sur 186 : le
-seul ajout réel est `shellcheck`, et la chute du total (−37) vient du
+`brew list --formula` en totalise 147 ; la centaine restante, ce sont des
+dépendances transitives. Le relevé du 2026-08-28 annonçait 48 sur 186 :
+`shellcheck` s'est ajouté, puis `pyenv` et `openssl@1.1` ont été retirés
+le 2026-08-31 (items 18 et 19), et la chute du total vient du
 `brew cleanup`/`autoremove` de l'item 8.
 
 **Angle mort de Homebrew à connaître** : les formules issues d'un tap
@@ -45,7 +46,7 @@ par différence avec `brew list --formula`, qui, lui, les voit. Tout
 inventaire futur doit faire pareil, sinon ces quatre outils passent pour
 désinstallés.
 
-- **Gestionnaires de versions/paquets** : asdf, uv, pyenv *(résiduel — item 18)*
+- **Gestionnaires de versions/paquets** : asdf, uv *(`pyenv` retiré le 2026-08-31 — item 18)*
 - **Bases de données** : postgresql@14, postgresql@18, supabase *(tap)*
 - **DevOps/cloud/infra** : ansible, azure-cli, cloudflared, helm, kubernetes-cli (kubectl), k9s *(tap)*, terraform + vault *(tap)*, scw (CLI Scaleway)
 - **Git/outillage dev** : git, gh, hub, bash-completion, coreutils, automake, pkgconf, shellcheck *(nouveau — c'est le linter du hook de pré-commit)*
@@ -53,7 +54,7 @@ désinstallés.
 - **Média/image** : ffmpeg, ghostscript, gifsicle, imagemagick, jhead, jpeg, jpegoptim, optipng, pngcrush, pngquant, poppler, portaudio
 - **iOS/mobile** : ideviceinstaller, libimobiledevice
 - **Divers CLI** : asciinema
-- **Gardées pour compatibilité** : libiconv, libksba, libxml2, libxslt, libyaml, openssl@1.1 *(EOL, plus aucun dépendant — item 19)*, openssl@3, zlib
+- **Gardées pour compatibilité** : libiconv, libksba, libxml2, libxslt, libyaml, openssl@3, zlib *(`openssl@1.1` retiré le 2026-08-31 — item 19)*
 
 `brew autoremove --dry-run` ne renvoie rien : aucune dépendance orpheline
 à récupérer.
@@ -114,8 +115,8 @@ désormais via les chemins nommés dans leurs strophes `uninstall`/`zap`.
 - **npm -g** : `corepack` 0.35.0 et `npm` 11.19.0, sous le Node 24.20.0 d'asdf. Ce sont les deux paquets livrés avec Node, pas des installs délibérées.
 - **pnpm / yarn / cargo / go / pipx / composer** : aucun.
 - **Ruby** : 3.3.5 via les shims asdf, uniquement les gems par défaut. `~/.gem` **a été supprimé** : le reliquat de l'item 6 est soldé.
-- **nvm / pyenv / rvm** : `~/.nvm`, `~/.pyenv` et `~/.rvm` sont bien absents — mais la **formule Homebrew `pyenv` 2.8.4 est toujours installée** (item 18).
-- **Java** : aucun JDK. `java` est le stub macOS, qui échoue sur « Unable to locate a Java Runtime » ; `/Library/Java/JavaVirtualMachines/` est vide (item 20).
+- **nvm / pyenv / rvm** : entièrement absents depuis le 2026-08-31 — répertoires *et* formules Homebrew. La formule `pyenv` 2.8.4 qui survivait à la suppression de `~/.pyenv` a été retirée (item 18).
+- **Java** : aucun JDK, et c'est désormais un choix assumé — la config morte qui en supposait un a été retirée le 2026-08-31 (item 20). `install-deps.sh` garde sa section « Java (Temurin JDK) » derrière son prompt, donc un besoin futur est à un `./install-deps.sh` de distance.
 
 ### Services en arrière-plan (`brew services list`)
 
@@ -172,18 +173,19 @@ Constats tirés de l'inventaire ci-dessus, classés par impact décroissant
 messages de commit, donc un item traité reste à sa place et un nouveau
 constat s'ajoute à la fin.
 
-### Où en est l'audit — relevé 2026-08-29
+### Où en est l'audit — mis à jour le 2026-08-31
 
-**Soldés** : 3, 6, 13, 14 (partiel).
-**Partiels, qui ont bougé** : 1, 9, 15, 16.
-**Toujours ouverts, re-vérifiés et inchangés** : **2** (Docker, 67 Go —
-de loin le premier poste du disque, intact depuis trois relevés), **5**
-(cask fantôme `github`), **7** (aider en double), 4, 10, 11, 12, 17.
+**Soldés** : 3, 6, 13, **18**, **19**, **20**, **23**.
+**Partiels, qui ont bougé** : 1, 9, 14, 15, 16.
+**Toujours ouverts** : **2** (Docker, 67 Go — de loin le premier poste
+du disque, intact depuis trois relevés), **5** (cask fantôme `github`),
+**7** (aider en double), 4, 10, 11, 12, 17, 21, 22.
 **Rouvert** : 8 (`brew outdated` était retombé à zéro, il remonte à 3).
-**Nouveaux** : 18 à 21.
 
-Ce relevé n'a rien exécuté de correctif : l'audit constate, `clean-mac.sh`
-et `install-deps.sh` agissent.
+Le relevé du 2026-08-29 n'avait rien exécuté de correctif — l'audit
+constate, `clean-mac.sh` et `install-deps.sh` agissent. La session du
+2026-08-31 a en revanche traité les items 18 à 20 sur demande explicite,
+et découvert l'item 23 en cherchant si Java servait encore.
 
 1. ~~Disk is at 92% (37 GB free).~~ **Largement traité — 123 Gio libres
    (73 %) au 2026-08-29**, contre 101 Go (77 %) la veille et 37 Go à
@@ -436,8 +438,15 @@ et `install-deps.sh` agissent.
     qualifie DDPM de « BenQ/Qisda monitor control ». C'est le *Dell
     Display and Peripheral Manager*, l'utilitaire du U4025QW, KVM
     compris.
-18. **La formule Homebrew `pyenv` 2.8.4 est toujours installée**, alors
-    que l'item 6 a retiré pyenv de la stack, que `~/.pyenv` n'existe
+18. ~~**La formule Homebrew `pyenv` 2.8.4 est toujours installée.**~~
+    **Fait le 2026-08-31.** `brew uninstall pyenv` (7,6 Mo ; zéro
+    dépendant, `~/.pyenv` déjà absent, aucune référence dans la config
+    shell — les trois vérifiés avant la suppression). La faille de
+    détection est bouchée dans la foulée : la section « legacy » de
+    `clean-mac.sh` teste maintenant **la formule Homebrew en plus du
+    répertoire**, pour les trois gestionnaires, et signale les
+    dépendants au lieu de proposer une désinstallation à l'aveugle.
+    Constat d'origine — alors que l'item 6 a retiré pyenv de la stack, que `~/.pyenv` n'existe
     plus, que `install-deps.sh` ne l'installe plus et que le README le
     déclare remplacé par `uv`. Le répertoire de données a été supprimé,
     le paquet non — c'est le cas de figure exact que la section « legacy »
@@ -448,8 +457,15 @@ et `install-deps.sh` agissent.
     concurrent d'asdf/uv. `brew uninstall pyenv` (rien n'en dépend), et
     tant qu'à faire, faire tester la formule à `clean-mac.sh` et pas
     seulement le répertoire.
-19. **`openssl@1.1` est toujours installé alors qu'il est EOL et que
-    plus rien n'en dépend.** `brew uses --installed openssl@1.1` ne
+19. ~~**`openssl@1.1` est toujours installé alors qu'il est EOL et que
+    plus rien n'en dépend.**~~ **Fait le 2026-08-31.** À noter pour la
+    postérité : la formule a été **désactivée dans homebrew-core le
+    2024-11-11**, donc ce retrait est sans retour par `brew` — d'où les
+    vérifications préalables, toutes négatives : zéro dépendant, et
+    aucun binaire des Ruby d'asdf ni des Python d'uv ne liait
+    `libssl.1.1` (`otool -L`). Après coup, Ruby 3.3.5 rapporte toujours
+    OpenSSL 3.6.3 et le shell de login démarre proprement. Constat
+    d'origine : `brew uses --installed openssl@1.1` ne
     renvoie rien, et l'item 6 avait explicitement conclu qu'il pouvait
     être retiré une fois Ruby rebâti contre `openssl@3` — ce qui a été
     fait le 2026-08-28, `.zshrc` et `install-deps.sh` pointant tous deux
@@ -458,8 +474,20 @@ et `install-deps.sh` agissent.
     installée n'est pas neutre : elle reste sur le disque, elle se
     proposera comme cible de link à toute compilation future, et elle
     brouille la lecture de l'inventaire.
-20. **Aucun JDK n'est installé, et la config shell pointe sur un JDK
-    fantôme.** `java` est le stub macOS, qui répond « Unable to locate a
+20. ~~**Aucun JDK n'est installé, et la config shell pointe sur un JDK
+    fantôme.**~~ **Tranché et fait le 2026-08-31 : config morte
+    supprimée, pas de JDK installé.** Les trois lignes de
+    `.bash_profile` (`#JDK1.7` et son `JAVA_HOME` vers un
+    `jdk-10.0.1` inexistant, plus l'ajout au `PATH`) sont retirées.
+    Rien sur cette machine ne réclamait de JDK : aucune formule
+    installée n'en dépend, et les IDE JetBrains embarquent leur propre
+    runtime (JBR). `install-deps.sh` conserve sa section « Java
+    (Temurin JDK) » derrière son prompt, donc un besoin futur reste à
+    un `./install-deps.sh` de distance — et le jour venu, `JAVA_HOME`
+    devra valoir `$(/usr/libexec/java_home)` plutôt qu'un chemin figé.
+    Les lignes n'ont **pas** été laissées en commentaire, l'item 9
+    montrant assez ce que devient une ligne commentée « pour plus
+    tard ». Constat d'origine : `java` est le stub macOS, qui répond « Unable to locate a
     Java Runtime » ; `/Library/Java/JavaVirtualMachines/` est vide. Or
     `install-deps.sh` déclare `temurin` (section « Java (Temurin JDK) »),
     et surtout `.bash_profile:21` exporte
@@ -496,3 +524,14 @@ et `install-deps.sh` agissent.
     différence avec `brew list --formula`, seul inventaire qui les voie.
     À garder en tête pour toute vérification manuelle : `brew list
     --versions <formule>` dit la vérité, les inventaires agrégés non.
+23. ~~**`ANDROID_HOME` pointe vers un SDK qui n'existe pas.**~~
+    **Trouvé et corrigé le 2026-08-31**, en traitant l'item 20 : même
+    classe de défaut, découvert en cherchant si Java servait encore.
+    `.zshrc` exportait `ANDROID_HOME=~/Library/Android/sdk` — répertoire
+    absent — puis ajoutait ses `tools` et `platform-tools` au `PATH`,
+    soit deux entrées fantômes à chaque shell. Les deux lignes sont
+    retirées. Vérifié dans un environnement vierge (`env -i`) : plus
+    aucun chemin Android ni Java dans le `PATH` d'un shell de login,
+    zsh comme bash. À noter pour les prochains audits : un `PATH`
+    hérité ment sur ce point — la session en cours garde les anciennes
+    entrées, seul un shell neuf dit la vérité.
