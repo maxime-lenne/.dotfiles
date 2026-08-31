@@ -28,12 +28,12 @@ chaque gestionnaire de paquets. Le script est en lecture seule et
 re-jouable : mieux vaut le relancer que faire confiance à ce document
 s'il a vieilli.
 
-### Homebrew — formules installées explicitement (47)
+### Homebrew — formules installées explicitement (48)
 
-`brew list --formula` en totalise 147 ; la centaine restante, ce sont des
+`brew list --formula` en totalise 148 ; la centaine restante, ce sont des
 dépendances transitives. Le relevé du 2026-08-28 annonçait 48 sur 186 :
-`shellcheck` s'est ajouté, puis `pyenv` et `openssl@1.1` ont été retirés
-le 2026-08-31 (items 18 et 19), et la chute du total vient du
+`shellcheck` puis `mas` se sont ajoutés, `pyenv` et `openssl@1.1` ont été
+retirés le 2026-08-31 (items 18 et 19), et la chute du total vient du
 `brew cleanup`/`autoremove` de l'item 8.
 
 **Angle mort de Homebrew à connaître** : les formules issues d'un tap
@@ -41,12 +41,12 @@ le 2026-08-31 (items 18 et 19), et la chute du total vient du
 `brew list --installed-on-request`, **ni** dans
 `brew info --json=v2 --installed` — alors qu'elles sont installées et sur
 le `PATH`. Le relevé précédent signalait déjà le problème pour
-`brew leaves` ; il est en fait plus large. Le compte de 49 les réintègre
+`brew leaves` ; il est en fait plus large. Le compte de 48 les réintègre
 par différence avec `brew list --formula`, qui, lui, les voit. Tout
 inventaire futur doit faire pareil, sinon ces quatre outils passent pour
 désinstallés.
 
-- **Gestionnaires de versions/paquets** : asdf, uv *(`pyenv` retiré le 2026-08-31 — item 18)*
+- **Gestionnaires de versions/paquets** : asdf, uv, mas *(App Store — ajouté le 2026-09-01, item 12 ; `pyenv` retiré le 2026-08-31, item 18)*
 - **Bases de données** : postgresql@14, postgresql@18, supabase *(tap)*
 - **DevOps/cloud/infra** : ansible, azure-cli, cloudflared, helm, kubernetes-cli (kubectl), k9s *(tap)*, terraform + vault *(tap)*, scw (CLI Scaleway)
 - **Git/outillage dev** : git, gh, hub, bash-completion, coreutils, automake, pkgconf, shellcheck *(nouveau — c'est le linter du hook de pré-commit)*
@@ -59,24 +59,31 @@ désinstallés.
 `brew autoremove --dry-run` ne renvoie rien : aucune dépendance orpheline
 à récupérer.
 
-### Homebrew — casks (36)
+### Homebrew — casks (42)
 
-42 au relevé précédent. Les six disparus valident deux items : les cinq
-enregistrements fantômes désinscrits (`airtable`, `chatgpt`,
+36 au relevé du 2026-08-29, 42 au 2026-08-28 : les six sortis étaient
+cinq enregistrements fantômes désinscrits (`airtable`, `chatgpt`,
 `dbeaver-community`, `evernote`, `notion-mail` — item 5) et `hyper`,
-effectivement retiré (item 9).
+effectivement retiré (item 9). Les six revenus sont d'une tout autre
+nature : ce sont les apps **adoptées** le 2026-09-01 au titre de
+l'item 11 — elles étaient déjà sur la machine, Homebrew les voit
+désormais.
 
-- **IA** : claude, codex, codexbar, copilot-cli, cursor, lm-studio, ollama-app, superwhisper
-- **Dev/IDE** : ghostty, wezterm, sublime-text, visual-studio-code, jetbrains-toolbox, postman, github\*, mqttx, ngrok, gcloud-cli, gpg-suite, fuse-t, docker-desktop
-- **Navigateurs** : arc, firefox, google-chrome
+- **IA** : claude, codex, codexbar, copilot-cli, cursor, lm-studio, ollama-app, superwhisper, antigravity†
+- **Dev/IDE** : ghostty, wezterm, sublime-text, visual-studio-code, zed†, jetbrains-toolbox, postman, github\*, mqttx, ngrok, gcloud-cli, gpg-suite, fuse-t, docker-desktop
+- **Navigateurs** : arc, firefox, google-chrome, microsoft-edge†
 - **Communication** : discord, microsoft-teams, slack, telegram, zoom
 - **Productivité/notes** : miro, notion, notion-calendar, typora, raycast
 - **Design** : figma
+- **Matériel / système** : nanoleaf†, stats†, timing†
 - **Polices** : font-hack-nerd-font
 
 `*` = **enregistrement fantôme** : Homebrew tient le cask pour installé
 alors que le `.app` a disparu de `/Applications`. Il n'en reste qu'un,
 `github` (GitHub Desktop) — item 5.
+
+`†` = **adopté le 2026-09-01** : l'app était installée à la main, le cask
+a repris le bundle en place (item 11).
 
 En retard : `codex`, `cursor`, `lm-studio`.
 
@@ -85,16 +92,21 @@ Taps configurés : `anomalyco/tap`, `derailed/k9s`, `hashicorp/tap`,
 
 ### Mac App Store (17 apps)
 
-`mas` n'est toujours pas installé ici : ces apps restent invisibles à
-l'outillage Homebrew et non listables depuis le terminal. Le recoupement
-`system_profiler` en dénombre 17, inchangé — item 12.
+`mas` 7.0.0 est installé depuis le 2026-09-01 : ces apps sont enfin
+listables et actualisables depuis le terminal, et `install-deps.sh`
+déclare exactement les 17 installées, ni plus ni moins (item 12).
 
-### Installé manuellement (ni Homebrew, ni App Store) — 26
+Airmail, Copilot, Developer, ExcalidrawZ, Keynote, Excel, OneNote,
+Outlook, PowerPoint, Word, MindNode Next, Numbers, OneDrive, Pages,
+TestFlight, WhatsApp, Xcode.
+
+### Installé manuellement (ni Homebrew, ni App Store) — 20
 
 Installés hors de tout gestionnaire de paquets : ni Homebrew ni
 `clean-mac.sh` ne peuvent les voir, les mettre à jour ou les suivre.
 
-- **Un cask existe** (item 11) : **Antigravity**, **Zed**, **Stats**, **Timing**, **Cloudflare WARP**, **Microsoft Edge**, **Google Drive**, **Nanoleaf Desktop**, **Logi Options+**, **Claude Code CLI** (+ son **Claude Code URL Handler.app** auto-généré).
+- **Un cask existe, adoption en attente** (item 11) : **Cloudflare WARP**, **Google Drive**, **Logi Options+** — leurs casks réclament un mot de passe administrateur, à lancer à la main. Six autres (Antigravity, Zed, Stats, Timing, Microsoft Edge, Nanoleaf) ont été adoptées le 2026-09-01 et ont quitté cette liste.
+- **Claude Code CLI** (+ son **Claude Code URL Handler.app** auto-généré) — reste hors Homebrew **délibérément** : le cask poserait un second binaire, plus ancien, à un autre chemin. Voir item 11.
 - **IDE JetBrains** (WebStorm, PyCharm, RubyMine, DataGrip, dans `~/Applications`) — gérés par JetBrains Toolbox, lui-même un cask.
 - **Téléchargements directs** : GitHub Copilot.app, Fireflies, Paper, Pencil, ChatGPT Classic.app.
 - **Utilitaires constructeur** : DDPM (Dell Display and Peripheral Manager — pilote le U4025QW, KVM compris), Logi Options+ / LogiPluginService, Nanoleaf Desktop, Reachy Mini Control.
@@ -173,19 +185,29 @@ Constats tirés de l'inventaire ci-dessus, classés par impact décroissant
 messages de commit, donc un item traité reste à sa place et un nouveau
 constat s'ajoute à la fin.
 
-### Où en est l'audit — mis à jour le 2026-08-31
+### Où en est l'audit — mis à jour le 2026-09-01
 
-**Soldés** : 3, 6, 13, **18**, **19**, **20**, **23**.
-**Partiels, qui ont bougé** : 1, 9, 14, 15, 16.
+**Soldés** : 3, 6, **12**, 13, **18**, **19**, **20**, **21** (à
+`postgresql@14` près, renvoyé à l'item 15), **23**.
+**Partiels, qui ont bougé** : 1, 9, **11** (six apps adoptées sur dix),
+14, 15, 16.
 **Toujours ouverts** : **2** (Docker, 67 Go — de loin le premier poste
-du disque, intact depuis trois relevés), **5** (cask fantôme `github`),
-**7** (aider en double), 4, 10, 11, 12, 17, 21, 22.
+du disque, intact depuis quatre relevés), **5** (cask fantôme `github`),
+**7** (aider en double), 4, 10, 17, 22.
 **Rouvert** : 8 (`brew outdated` était retombé à zéro, il remonte à 3).
 
 Le relevé du 2026-08-29 n'avait rien exécuté de correctif — l'audit
-constate, `clean-mac.sh` et `install-deps.sh` agissent. La session du
-2026-08-31 a en revanche traité les items 18 à 20 sur demande explicite,
-et découvert l'item 23 en cherchant si Java servait encore.
+constate, `clean-mac.sh` et `install-deps.sh` agissent. Les sessions
+suivantes ont traité, sur demande explicite, les items 18 à 20 le
+2026-08-31 (plus l'item 23 découvert au passage), puis 11, 12 et 21 le
+2026-09-01.
+
+**Ce qui attend une main humaine**, faute de mot de passe administrateur
+dans une session non interactive :
+
+```
+brew install --cask --force cloudflare-warp google-drive logi-options+
+```
 
 1. ~~Disk is at 92% (37 GB free).~~ **Largement traité — 123 Gio libres
    (73 %) au 2026-08-29**, contre 101 Go (77 %) la veille et 37 Go à
@@ -318,8 +340,40 @@ et découvert l'item 23 en cherchant si Java servait encore.
     plus assez pour les tenir à jour, mais assez installés pour qu'ils
     se mettent à jour tout seuls.*
 11. **Dix apps installées à la main alors qu'un cask existe** —
-    re-vérifié le 2026-08-29 : **les dix sont toujours dans cet état**,
-    aucune adoption n'a été faite. La comparaison avec `install-deps.sh`
+    **six adoptées le 2026-09-01, trois en attente, une abandonnée.**
+
+    *Adoptées* (`brew install --cask --force`, bundle repris en place) :
+    Stats, Timing, Microsoft Edge — versions strictement identiques,
+    aucun changement fonctionnel — plus Antigravity (2.0.6 → 2.11.0),
+    Zed (1.7.2 → 1.17.2) et Nanoleaf (2.3.5 → 2.5.0), que l'adoption
+    met à jour au passage. Vérifié après coup : les six sont
+    enregistrées dans `brew list --cask` et les apps sont en place aux
+    versions attendues. Les casks passent de 36 à 42.
+
+    *En attente* : Cloudflare WARP, Google Drive et Logi Options+.
+    Leurs casks passent par un `.pkg` ou un installeur, donc réclament
+    un mot de passe administrateur qu'une session non interactive ne
+    peut pas fournir. À lancer à la main :
+    `brew install --cask --force cloudflare-warp google-drive logi-options+`
+    — prévoir une reconnexion au VPN et, pour Google Drive, un
+    possible re-login avec ré-autorisation de l'accès disque complet.
+
+    *Abandonnée — **Claude Code CLI doit sortir de cette liste***. Le
+    cask `claude-code` ne pose pas une app mais un binaire `claude`
+    dans `/opt/homebrew/bin`, en version 2.1.236, alors que le CLI
+    installé vit dans `~/.local/bin/claude` en 2.1.252 — et
+    `~/.local/bin` passe avant dans le `PATH`. L'adopter n'adopterait
+    donc rien : ça ajouterait une seconde copie, plus ancienne, que
+    rien n'appellerait et qui périmerait sans qu'on la voie. C'est
+    exactement le défaut décrit à l'item 7 pour `aider`. Le constat
+    d'origine se trompait en la rangeant avec les neuf autres.
+
+    Les dix sont en revanche **déclarées dans `install-deps.sh`** :
+    Antigravity, Microsoft Edge, Nanoleaf, Logi Options+ et Cloudflare
+    WARP y ont été ajoutés (les cinq autres y étaient déjà), avec pour
+    les deux derniers une note sur le mot de passe administrateur.
+
+    Constat d'origine : La comparaison avec `install-deps.sh`
     le montre par l'autre bout : `stats`, `timing`, `zed`,
     `google-drive` et `claude-code` sont **déclarés dans le script et
     absents de Homebrew** — le script promet une install que la machine
@@ -333,9 +387,25 @@ et découvert l'item 23 en cherchant si Java servait encore.
     add them to `install-deps.sh` so `brew upgrade` and `clean-mac.sh`
     cover them. Bonus: it retires the per-vendor auto-updater
     LaunchAgents from Google and Microsoft.
-12. **Toujours pas de `mas`** — re-vérifié le 2026-08-29 : la formule
-    n'est pas installée, alors que `install-deps.sh` la déclare. Les 17
-    apps App Store restent invisibles à l'outillage. Constat d'origine :
+12. ~~**Toujours pas de `mas`.**~~ **Fait le 2026-09-01.** `mas` 7.0.0
+    installé, et la liste codée en dur de `install-deps.sh` resynchronisée
+    sur `mas list` : **17 déclarées, 17 installées, zéro écart dans les
+    deux sens** (vérifié par comparaison des identifiants).
+
+    Six entrées retirées, dont les apps ne sont plus installées :
+    Enchanted, Messenger, MindNode 2, MindNode Classic, Speedtest,
+    TypingLand. Les re-déclarer signifiait qu'une reconstruction
+    réinstallerait en silence des apps délibérément supprimées — le
+    piège même que l'item 5 décrit pour les casks fantômes. Cinq
+    ajoutées : OneNote, Outlook, Word, MindNode Next (qui remplace les
+    deux MindNode) et Xcode, ce dernier placé en fin de section parce
+    qu'il pèse ~10 Go. Le bloc porte désormais la commande qui le
+    régénère, pour que la prochaine resynchronisation ne se fasse pas à
+    la main.
+
+    *Correction au constat d'origine* : il rangeait ExcalidrawZ parmi
+    les manquantes, alors qu'elle était déjà déclarée. Constat
+    d'origine, pour le reste exact :
     the 17 App Store apps are invisible to Homebrew
     tooling, exactly as on the Mac mini. The `install-deps.sh` step
     exists; it just needs running here. Its hardcoded list is also
@@ -500,8 +570,23 @@ et découvert l'item 23 en cherchant si Java servait encore.
     doivent disparaître de `.bash_profile`. À noter que ce `JAVA_HOME`
     n'existe que côté bash : c'est un exemple de plus de la divergence
     bash/zsh.
-21. **Onze paquets sont installés sans être déclarés dans
-    `install-deps.sh`** : `azure-cli`, `supabase`, `ideviceinstaller`,
+21. ~~**Onze paquets sont installés sans être déclarés dans
+    `install-deps.sh`.**~~ **Dix déclarés le 2026-09-01 ; il en reste
+    un, volontairement.** `libyaml` (bibliothèque de base), `poppler`
+    (outils PDF), `azure-cli` et `supabase` (nouveaux prompts cloud),
+    `libimobiledevice` + `ideviceinstaller` (nouveau prompt outillage
+    iOS), `llmfit`, `opencode` et le cask `copilot-cli` (section IA),
+    et le cask `fuse-t` (nouveau prompt, avec son tap). Les trois
+    formules de tap sont déclarées en nom qualifié avec leur
+    `brew tap`, et commentées pour rappeler qu'elles échappent aux
+    inventaires agrégés (item 22).
+
+    **`postgresql@14` est laissé de côté sciemment** : le déclarer
+    contredirait l'item 15, qui recommande de s'en débarrasser. Sa
+    résolution appartient à cet item-là, pas à celui-ci ; c'est
+    désormais le seul écart de déclaration de la machine.
+
+    Constat d'origine : : `azure-cli`, `supabase`, `ideviceinstaller`,
     `libimobiledevice`, `libyaml`, `llmfit`, `opencode`, `poppler`,
     `postgresql@14`, plus les casks `copilot-cli` et `fuse-t`. Une
     reconstruction de la machine à partir du dépôt ne les remettrait
