@@ -90,6 +90,8 @@ install_or_upgrade "libxslt"
 install_or_upgrade "libiconv"
 install_or_upgrade "libksba"
 install_or_upgrade "zlib"
+# libyaml: psych (donc Ruby, donc bundler) se compile contre elle.
+install_or_upgrade "libyaml"
 install_or_upgrade "coreutils"
 install_or_upgrade "automake"
 install_or_upgrade "pkgconf"
@@ -113,6 +115,9 @@ install_or_upgrade "ghostscript"
 install_or_upgrade "imagemagick"
 install_or_upgrade gifsicle jhead jpegoptim jpeg optipng pngcrush pngquant advancecomp agg
 install_or_upgrade "ffmpeg"
+# poppler: utilitaires PDF en ligne de commande (pdftotext, pdfimages),
+# ce que pandoc et les scripts de conversion appellent.
+install_or_upgrade "poppler"
 
 
 echo "------------------------------"
@@ -274,10 +279,30 @@ if ask_to_install "GCP CLI"; then
   install_or_upgrade "--cask" "gcloud-cli"
 fi
 
+if ask_to_install "Azure CLI"; then
+  install_or_upgrade "azure-cli"
+fi
+
+if ask_to_install "Supabase CLI"; then
+  # Formule de tap : invisible dans `brew list --installed-on-request`
+  # comme dans `brew info --json` (voir l'item 22 de l'audit), donc à
+  # vérifier avec `brew list --versions supabase` et pas autrement.
+  brew tap supabase/tap 2>/dev/null
+  install_or_upgrade "supabase/tap/supabase"
+fi
+
 if ask_to_install "asciinema and asciicast2gif tools"; then
   # cast and gif from terminal
   install_or_upgrade "asciinema"
   npm i -g asciicast2gif
+fi
+
+if ask_to_install "iOS device tooling (libimobiledevice, ideviceinstaller)"; then
+  # Dialogue avec un iPhone branché en USB depuis le terminal : lister
+  # les apps, installer un .ipa, lire les logs. Complète Xcode plutôt
+  # que de le doubler.
+  install_or_upgrade "libimobiledevice"
+  install_or_upgrade "ideviceinstaller"
 fi
 
 if ask_to_install "Misc CLI tools (macmon, summarize, swiftformat, swiftlint, xcodegen, sentry-wizard, pandoc, terraformer)"; then
@@ -359,6 +384,15 @@ if ask_to_install "developer applications"; then
   echo "------------------------------"
   echo "Installing Developer apps: Ghostty, IDEs, Postman..."
 
+  if ask_to_install "fuse-t (FUSE for macOS, no kernel extension)"; then
+    # Ce que réclament les outils qui montent un système de fichiers en
+    # espace utilisateur (sshfs, montages cloud). fuse-t passe par NFS
+    # plutôt que par une extension noyau, d'où l'absence d'autorisation
+    # de sécurité à accorder au démarrage, contrairement à macfuse.
+    brew tap macos-fuse-t/cask 2>/dev/null
+    install_or_upgrade "--cask" "fuse-t"
+  fi
+
   if ask_to_install "Ghostty terminal"; then
     #install_or_upgrade "--cask" "wezterm"
     install_or_upgrade "--cask" "ghostty"
@@ -407,6 +441,12 @@ if ask_to_install "AI applications"; then
   install_or_upgrade "--cask" "codexbar"
   install_or_upgrade "portaudio"
   install_or_upgrade "--cask" "cursor"
+  install_or_upgrade "--cask" "copilot-cli"
+  install_or_upgrade "--cask" "antigravity"
+  # Formules de tap, mêmes réserves d'inventaire que supabase ci-dessus.
+  brew tap anomalyco/tap 2>/dev/null
+  install_or_upgrade "anomalyco/tap/opencode"
+  install_or_upgrade "llmfit"
 
   if ask_to_install "OpenHands and specify-cli (via uv tool)"; then
     uv tool install openhands
@@ -424,6 +464,7 @@ if ask_to_install "miscellaneous applications"; then
     install_or_upgrade "--cask" "arc"
     install_or_upgrade "--cask" "google-chrome"
     install_or_upgrade "--cask" "firefox"
+    install_or_upgrade "--cask" "microsoft-edge"
   fi
 
   if ask_to_install "Communication tools (Slack, Gitter, Discord)"; then
@@ -460,6 +501,23 @@ if ask_to_install "miscellaneous applications"; then
   fi
 
 
+  if ask_to_install "Hardware vendor utilities (Nanoleaf, Logi Options+)"; then
+    # Pilotent du matériel physique : les installer sur une machine qui
+    # n'a pas le périphérique correspondant n'a aucun intérêt, d'où le
+    # prompt séparé. logi-options+ pose aussi un service en arrière-plan
+    # (LogiPluginService) et son cask passe par un installeur : il
+    # demandera un mot de passe administrateur.
+    install_or_upgrade "--cask" "nanoleaf"
+    install_or_upgrade "--cask" "logi-options+"
+  fi
+
+  if ask_to_install "Cloudflare WARP (client VPN)"; then
+    # Cask à base de .pkg : demande un mot de passe administrateur, et
+    # une adoption par-dessus une install manuelle existante peut exiger
+    # de se reconnecter.
+    install_or_upgrade "--cask" "cloudflare-warp"
+  fi
+
   if ask_to_install "Other personal setup"; then
     if ask_to_install "Music (Spotify)"; then
       install_or_upgrade "--cask" "spotify"
@@ -492,24 +550,34 @@ if [ "$MACHINE_ROLE" = "workstation" ]; then
 
     install_or_upgrade "mas"
 
+    # Synced against `mas list` on the MacBook Pro, 2026-08-31. Six
+    # entries were dropped because the apps are not installed on either
+    # machine any more (Enchanted, Messenger, MindNode 2, MindNode
+    # Classic, Speedtest, TypingLand): re-declaring them meant a rebuild
+    # would silently reinstall apps that had been deliberately removed,
+    # which is the same trap as the orphaned casks in audit item 5.
+    #
+    # Regenerate this list rather than editing it by hand:
+    #   mas list | awk '{id=$1; $1=""; sub(/ \(.*\)$/,""); sub(/^ /,""); printf "    mas install %-12s # %s\n", id, $0}' | sort -k4
     mas install 918858936    # Airmail
     mas install 6738511300   # Microsoft Copilot
     mas install 640199958    # Apple Developer
-    mas install 6474268307   # Enchanted (Ollama GUI)
     mas install 6636493997   # ExcalidrawZ
     mas install 409183694    # Keynote
-    mas install 1480068668   # Messenger
     mas install 462058435    # Microsoft Excel
+    mas install 784801555    # Microsoft OneNote
+    mas install 985367838    # Microsoft Outlook
     mas install 462062816    # Microsoft PowerPoint
-    mas install 1289197285   # MindNode 2
-    mas install 1218718027   # MindNode Classic
+    mas install 462054704    # Microsoft Word
+    mas install 6446116532   # MindNode Next (replaces MindNode 2/Classic)
     mas install 409203825    # Numbers
     mas install 823766827    # OneDrive
     mas install 409201541    # Pages
-    mas install 1153157709   # Speedtest
     mas install 899247664    # TestFlight
-    mas install 1568264476   # TypingLand
     mas install 310633997    # WhatsApp
+    # Xcode is ~10 GB and pulls its own toolchain — left last on purpose
+    # so the rest of the section is done before it starts downloading.
+    mas install 497799835    # Xcode
   fi
 else
   echo "Server role: skipping Mac App Store applications (personal/productivity apps, not needed on a headless server)."
