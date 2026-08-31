@@ -40,9 +40,6 @@ export GPG_TTY=$(tty)
 # Same for `./node_modules/.bin` and nodejs
 export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
 
-export ANDROID_HOME="/Users/$USER/Library/Android/sdk"
-export PATH="${PATH}:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools"
-
 # Store your own aliases in the ~/.aliases file and load the here.
 [[ -f "$HOME/.aliases" ]] && source "$HOME/.aliases"
 

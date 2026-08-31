@@ -17,10 +17,6 @@ if [ -f $(brew --prefix)/etc/bash_completion ]; then
 . $(brew --prefix)/etc/bash_completion
 fi
 
-#JDK1.7
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/"
-export PATH=$PATH:$JAVA_HOME/bin:$PATH
-
 #Ajout des bin Homebrew dans le PATH
 export PATH=/usr/local:/usr/local/bin:/usr/local/sbin:$PATH
 
