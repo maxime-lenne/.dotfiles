@@ -48,7 +48,25 @@ for file in "${files[@]}"; do
   git show ":$file" > "$tmpdir/$file" || exit 1
 done
 
-if (cd "$tmpdir" && shellcheck -S "$severity" -- "${files[@]}"); then
+# Materialise every *other* tracked shell file too, from the index.
+# Only the staged ones get linted, but `shellcheck -x` follows `source`
+# directives and needs the target on disk: a commit touching only
+# clean-mac.sh would otherwise be judged without dotfiles-lib.sh next
+# to it and fail on two false positives (SC1091, and SC2034 for the
+# AUTO_YES that the library does read). The index holds the current
+# content of every tracked file, so this reproduces what the tree looks
+# like once the commit lands.
+while IFS= read -r -d '' dep; do
+  case "$dep" in
+    *.sh) ;;
+    *) continue ;;
+  esac
+  [ -e "$tmpdir/$dep" ] && continue
+  mkdir -p "$tmpdir/$(dirname "$dep")"
+  git show ":$dep" > "$tmpdir/$dep" 2>/dev/null || rm -f "$tmpdir/$dep"
+done < <(git ls-files -z)
+
+if (cd "$tmpdir" && shellcheck -x -S "$severity" -- "${files[@]}"); then
   exit 0
 fi
 

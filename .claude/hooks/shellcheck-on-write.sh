@@ -47,7 +47,13 @@ esac
 
 command -v shellcheck > /dev/null 2>&1 || exit 0
 
-if out=$(shellcheck -S info -- "$file" 2>&1); then
+# -x follows `source` directives. Without it, linting a single file in
+# isolation reports the sourced library as unfollowable (SC1091) and
+# every variable the library reads as unused (SC2034) — findings that
+# vanish the moment the file is judged alongside what it sources. The
+# git pre-commit hook uses -x for the same reason; the two lint paths
+# have to agree, or one of them cries wolf.
+if out=$(shellcheck -x -S info -- "$file" 2>&1); then
   exit 0
 fi
 
