@@ -281,7 +281,10 @@ for entry in "pyenv|$HOME/.pyenv|remplacé par uv (uv python install / uv venv)"
              "nvm|$HOME/.nvm|remplacé par asdf (plugin nodejs) ou bun" \
              "rvm|$HOME/.rvm|remplacé par asdf (plugin ruby)"; do
   IFS="|" read -r name dir reason <<< "$entry"
+  found=false
+
   if [ -d "$dir" ]; then
+    found=true
     size=$(kb_to_human "$(dir_size_kb "$dir")")
     warn "$name détecté ($dir, $size) — $reason"
     if have_cmd "$name"; then
@@ -293,8 +296,26 @@ for entry in "pyenv|$HOME/.pyenv|remplacé par uv (uv python install / uv venv)"
       report_freed "$name (suppression complète)" "$before" "$dir"
       warn "Pense à retirer les lignes d'initialisation de $name de tes fichiers shell (.zshrc/.bash_profile) si elles y sont encore."
     fi
-  else
-    skipped "$name n'est pas installé ($dir introuvable)"
+  fi
+
+  # Le répertoire de données et la formule Homebrew se retirent
+  # séparément, et l'un peut survivre à l'autre : l'audit du 2026-08-29
+  # a trouvé ~/.pyenv supprimé mais la formule `pyenv` toujours
+  # installée, donc encore entretenue par `brew upgrade` et invisible
+  # pour une vérification qui ne regarde que le répertoire.
+  if have_cmd brew && brew list --versions "$name" > /dev/null 2>&1; then
+    found=true
+    warn "la formule Homebrew $name est installée — $reason"
+    deps=$(brew uses --installed "$name" 2>/dev/null | tr '\n' ' ')
+    if [ -n "$deps" ]; then
+      warn "  des paquets en dépendent ($deps) — ne pas la retirer sans vérifier ce qui casserait."
+    elif ask_to_clean "la formule Homebrew $name (rien n'en dépend)"; then
+      run brew uninstall "$name"
+    fi
+  fi
+
+  if [ "$found" = false ]; then
+    skipped "$name n'est installé ni comme répertoire ($dir) ni comme formule Homebrew"
   fi
 done
 
