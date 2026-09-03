@@ -88,7 +88,7 @@ main known wart:
 
 So `.exports` and `.functions` are bash-only today, and several exports
 (`EDITOR`, `BUNDLER_EDITOR`, `GPG_TTY`) exist in both places with drift.
-Unifying this is a tracked task in `tasks.md` — treat any edit to these
+Unifying this is a tracked task in `docs/TASKs.md` — treat any edit to these
 five files as touching a known-inconsistent surface, and check both paths.
 
 **`custom/plugins/`** is vendored third-party oh-my-zsh code

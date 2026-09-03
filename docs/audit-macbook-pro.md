@@ -483,7 +483,7 @@ brew install --cask --force cloudflare-warp google-drive logi-options+
     est présent **dans deux fichiers**, `.zshrc:55` *et* `.exports:21`.
     Atom est arrêté depuis 2022, et maintenant qu'`EDITOR` vaut `vim`,
     ces deux lignes sont les dernières à le désigner encore. Le doublon
-    illustre au passage la divergence bash/zsh que `tasks.md` veut
+    illustre au passage la divergence bash/zsh que `TASKs.md` veut
     résorber : la même variable, définie deux fois, dans deux chaînes de
     chargement différentes.
 15. ~~**Deux majeures PostgreSQL installées (14 et 18), aucune ne
