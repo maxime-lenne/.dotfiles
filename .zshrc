@@ -48,8 +48,12 @@ export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
 
-export EDITOR="vim"
-export BUNDLER_EDITOR="atom"
+# Shared exports for both shells. Sourced here since 2026-09-04: .exports was
+# bash-only, so EDITOR/BUNDLER_EDITOR were re-declared inline here and drifted.
+# It also pulls in the application environment (AIRMAIL_MCP_*) and, last, the
+# machine-local secrets from ~/.env.local. Kept after oh-my-zsh so this file
+# wins over the plugin defaults.
+[[ -f "$HOME/.exports" ]] && source "$HOME/.exports"
 
 
 export PATH="/Users/maxime-lenne/.local/bin:$PATH"

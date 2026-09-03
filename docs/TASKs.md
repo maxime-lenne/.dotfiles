@@ -56,6 +56,16 @@ json// .claude.json identique partout
 Vu que tu as un Mac mini M4 Pro et probablement un MacBook, je te conseille Git + variables d'env pour garder la flexibilité tout en versionnant ta config.
 Tu veux que je t'aide à mettre ça en place ?
 
-- Ajout de l'export des variables d'env nécessaire au programe
+- [x] Ajout de l'export des variables d'env nécessaire au programe — fait le
+  2026-09-04. Config non sensible dans `.exports` (section « Application
+  environment »), secrets dans `.env` à la racine du dépôt — gitignoré, seul
+  dotfile jamais versionné — symlinké en `~/.env.local` par
+  `configure_dotfiles.sh` et chargé en dernier par `.exports`.
+  `.env.example` versionné documente les clés.
+  `.zshrc` source désormais `.exports` (fin de la dérive EDITOR /
+  BUNDLER_EDITOR). `~/.extra`, cité partout mais sourcé nulle part, est
+  remplacé par `~/.env.local`. Voir README « Environment variables &
+  secrets ». Limite connue : portée shell uniquement — une app GUI lancée
+  depuis le Dock hérite de launchd, pas de `.zshrc`.
 - Refacto et mise en commun entre bash et zsh de .aliasess, .profile, exports, .functions
-- 
+- Backup existing dotfile first @configure_dotfiles.sh

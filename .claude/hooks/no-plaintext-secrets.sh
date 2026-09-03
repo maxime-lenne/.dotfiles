@@ -11,8 +11,8 @@
 #
 # What it allows, deliberately: a reference. `export API_KEY="$MY_KEY"`,
 # `$(...)`, or an empty default are how a secret is *supposed* to reach
-# the shell — the value lives in a machine-local file that is never
-# committed, which is exactly the pattern tasks.md is heading toward.
+# the shell — the value lives in .env, the one gitignored file here, linked
+# to ~/.env.local and loaded last by .exports.
 #
 # Reads the hook payload on stdin, writes a deny verdict on stdout.
 #
@@ -27,11 +27,13 @@ command -v jq > /dev/null 2>&1 || exit 0
 file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
 [ -n "$file" ] || exit 0
 
-# Only the tracked shell config. Anything else in the repo — scripts,
-# docs, skills — is out of scope: this guards the files that get both
-# published and sourced at login.
+# Only the tracked shell config, plus .env.example — it is versioned and
+# published like the rest, and being the template for the secrets file it
+# is precisely where a real value gets pasted by mistake. Anything else in
+# the repo — scripts, docs, skills — is out of scope: this guards the files
+# that get both published and sourced at login.
 case "$(basename "$file")" in
-  .exports|.aliases|.functions|.zshrc|.bashrc|.bash_profile|.bash_prompt|.gitconfig) ;;
+  .exports|.aliases|.functions|.zshrc|.bashrc|.bash_profile|.bash_prompt|.gitconfig|.env.example) ;;
   *) exit 0 ;;
 esac
 
@@ -55,6 +57,6 @@ jq -n --arg file "$file" --arg hits "$hits" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "deny",
-    permissionDecisionReason: ("Refus d écriture : ce qui ressemble à un secret en clair irait dans " + $file + ". Les fichiers de config shell de ce dépôt sont publiés sur GitHub, et ~/ n en contient que des liens symboliques — écrire par l un ou l autre chemin revient au même. Une fois poussé, réécrire l historique ne dé-fuite rien : il faut faire tourner la clé.\n\nLignes en cause :\n" + $hits + "\nÉcris plutôt une référence : export MA_CLE=\"$MA_CLE\", la valeur restant dans un fichier local non versionné (~/.extra, chargé par .bash_profile). Si c est un faux positif, dis-le et l utilisateur pourra écrire la ligne lui-même.")
+    permissionDecisionReason: ("Refus d écriture : ce qui ressemble à un secret en clair irait dans " + $file + ". Les fichiers de config shell de ce dépôt sont publiés sur GitHub, et ~/ n en contient que des liens symboliques — écrire par l un ou l autre chemin revient au même. Une fois poussé, réécrire l historique ne dé-fuite rien : il faut faire tourner la clé.\n\nLignes en cause :\n" + $hits + "\nÉcris plutôt une référence : export MA_CLE=\"$MA_CLE\", la valeur restant dans un fichier local non versionné (~/.env.local, chargé en dernier par .exports, lui-même sourcé par bash et zsh). Si c est un faux positif, dis-le et l utilisateur pourra écrire la ligne lui-même.")
   }
 }'

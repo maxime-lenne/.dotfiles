@@ -62,6 +62,50 @@ chmod 755 configure_dotfiles.sh
 `configure_dotfiles.sh` also points git at this repo's own hooks — see
 below.
 
+## Environment variables & secrets (`.exports`, `~/.env.local`)
+
+Application environment variables are split in two, along a single line:
+**is it a secret?**
+
+| | Where | Versioned |
+|---|---|---|
+| Plain config (ports, feature flags, paths) | `.exports` | yes |
+| Secrets (tokens, API keys, passwords) | `.env` | **never** |
+
+`.exports` is sourced by both shells — by `.bash_profile` through its
+`~/.{bash_prompt,exports,aliases,functions}` loop, and by `.zshrc` through
+an explicit `source` line. Its **last** statement loads `~/.env.local` when
+that file is readable, so a secret always wins over a value declared above
+it.
+
+`.env` follows the same symlink layout as every other dotfile here — it
+lives at the root of the repo and `configure_dotfiles.sh` links it to
+`~/.env.local`, the name `.exports` sources — with one deliberate exception:
+**it is the only dotfile in this repo that is never committed.** A single
+`.gitignore` rule is what stands between it and a public push, so never
+`git add -f .env`. It is a plain shell fragment of `export KEY="value"`
+lines, mode `600`.
+
+`.env.example` is the versioned template. It documents every key the setup
+expects, with empty values, and is the only `.env*` file this repo tracks.
+`configure_dotfiles.sh` seeds `.env` from it on a machine that has none,
+never overwrites an existing `.env`, and backs up a pre-existing
+`~/.env.local` before linking rather than clobbering it.
+
+Adding a variable:
+
+1. Not a secret → add it to the "Application environment" section of
+   `.exports`, done.
+2. A secret → declare the key (empty) in `.env.example`, then fill the value
+   in `.env` on each machine.
+
+**GUI apps do not see any of this.** These are shell exports: they reach
+terminals, scripts, and CLI-launched processes. A macOS app started from the
+Dock inherits its environment from `launchd`, so Claude Desktop and friends
+read their own config files instead — `AIRMAIL_MCP_PORT` in `.exports`
+reaches an Airmail MCP server started from a shell, not the one Claude
+Desktop spawns.
+
 ## Git hooks (`hooks/`)
 
 `hooks/pre-commit` runs `shellcheck` over the shell scripts in a commit
@@ -105,8 +149,9 @@ session, wired in `.claude/settings.json`. Two of them:
   These are published to a public repo *and* symlinked into `$HOME`, so
   a token pasted into `.exports` leaks on the next push and rewriting
   history doesn't un-leak it. A reference (`"$MY_KEY"`, `$(...)`) is
-  allowed — that's the pattern to use, with the value in an
-  unversioned `~/.extra`.
+  allowed — that's the pattern to use, with the value in the
+  unversioned `~/.env.local` (see above). It also guards `.env.example`,
+  the one place a real value is likeliest to be pasted by mistake.
 
 Both read the hook payload on stdin, need `jq` (macOS ships it at
 `/usr/bin/jq`), and fail open: if a dependency is missing they exit

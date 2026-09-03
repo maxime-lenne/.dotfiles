@@ -3,7 +3,8 @@ export PATH="$PATH:/Users/maxime-lenne/.docker/bin"
 # End of Docker Desktop section.
 
 # Load ~/.bash_prompt, ~/.exports, ~/.aliases and ~/.functions
-# ~/.extra can be used for settings you don’t want to commit
+# Settings you don’t want to commit go to ~/.env.local, which .exports
+# sources last — not to ~/.extra, which nothing has ever loaded.
 for file in ~/.{bash_prompt,exports,aliases,functions}; do
 	[ -r "$file" ] && source "$file"
 done
