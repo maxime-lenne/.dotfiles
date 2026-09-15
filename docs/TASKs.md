@@ -67,5 +67,24 @@ Tu veux que je t'aide à mettre ça en place ?
   remplacé par `~/.env.local`. Voir README « Environment variables &
   secrets ». Limite connue : portée shell uniquement — une app GUI lancée
   depuis le Dock hérite de launchd, pas de `.zshrc`.
-- Refacto et mise en commun entre bash et zsh de .aliasess, .profile, exports, .functions
-- Backup existing dotfile first @configure_dotfiles.sh
+- [x] Refacto et mise en commun entre bash et zsh de .aliasess, .profile,
+  exports, .functions — fait le 2026-09-15. `.aliases`, `.exports`,
+  `.functions` et `.bash_prompt` ont quitté `$HOME` pour `shell/`, chargés
+  dans un ordre unique par `shell/index.sh` (lui-même sourcé par `.zshrc`
+  et `.bashrc`) : `path` → `exports` → `aliases` → `functions` →
+  `role-$MACHINE_ROLE` → `~/.env.local`. zsh ne saute plus `.functions`, ni
+  ne charge `.aliases` deux fois ; `EDITOR`/`BUNDLER_EDITOR`/`GPG_TTY`
+  n'existent plus qu'à un seul endroit. Voir la spec
+  `docs/superpowers/specs/2026-09-15-shell-config-unification-design.md`
+  et le plan `docs/superpowers/plans/2026-09-15-shell-config-unification.md`.
+- [x] Backup existing dotfile first @configure_dotfiles.sh — fait le
+  2026-09-15 (même plan que ci-dessus, tâche 10) : le `mv` inconditionnel
+  est remplacé par un backup horodaté uniquement quand la cible existe
+  réellement, et un lien déjà correct ne déclenche plus de backup — le
+  script est désormais idempotent.
+- Dérive Ruby : `install-deps.sh` installe `bundler`, `rails`, `jekyll` et
+  `colorls`, mais seuls `bundler` et `jekyll` sont présents dans le Ruby
+  3.3.5 d'asdf (constaté le 2026-09-15). Conséquence visible : `rails` hors
+  d'un projet tombe sur `/usr/bin/rails`, le stub Apple en `#!/usr/bin/ruby`,
+  et l'alias `lc` reste inactif. Relancer la section Ruby d'`install-deps.sh`
+  puis `asdf reshim ruby`.

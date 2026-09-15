@@ -62,29 +62,57 @@ chmod 755 configure_dotfiles.sh
 `configure_dotfiles.sh` also points git at this repo's own hooks — see
 below.
 
-## Environment variables & secrets (`.exports`, `~/.env.local`)
+## Shell configuration (`shell/`)
+
+`$HOME` only ever gets three shell files symlinked in: `.zshrc`, `.bashrc`,
+and a `.bash_profile` that does nothing but source `.bashrc` (bash does not
+read `.bashrc` in a login shell, and both Terminal.app and `ssh` start one;
+zsh has no such split, so `.zshrc` needs no stub). Everything the two
+shells share lives under `shell/`, loaded through a single file:
+
+| File | Responsibility |
+|---|---|
+| `shell/index.sh` | Resolve `$DOTFILES`, detect the role, source fragments in order, load `~/.env.local` last |
+| `shell/path.sh` | `path_prepend` / `path_append`, and the whole head of `PATH` |
+| `shell/exports.sh` | Environment variables shared by both shells |
+| `shell/aliases.sh` | Role-independent aliases |
+| `shell/functions.sh` | Role-independent functions |
+| `shell/role-workstation.sh` | GUI aliases, Docker Desktop / Antigravity `PATH`, kubeconfig |
+| `shell/role-server.sh` | Headless placeholder |
+| `shell/bash-prompt.sh` | `PS1` (bash only, sourced by `.bashrc`, never by the loader) |
+| `.zshrc` | oh-my-zsh, `unalias rm`, `setopt`, zsh completions |
+| `.bashrc` | The real bash file: loader, prompt, bash completions |
+| `.bash_profile` | Two-line stub reaching `.bashrc` |
+
+`shell/index.sh` loads fragments in a fixed order — `path` → `exports` →
+`aliases` → `functions` → `role-$MACHINE_ROLE` → `~/.env.local` — and every
+file in that chain (plus `shell/index.sh` itself) has to run under bash 3.2
+**and** zsh, so no arrays, no `[[ ]]`, no bashisms or zshisms. Add a new
+fragment to `shell/`, source it from `shell/index.sh`, once — not in an rc
+file, which would only reach one shell.
+
+## Environment variables & secrets (`shell/exports.sh`, `~/.env.local`)
 
 Application environment variables are split in two, along a single line:
 **is it a secret?**
 
 | | Where | Versioned |
 |---|---|---|
-| Plain config (ports, feature flags, paths) | `.exports` | yes |
+| Plain config (ports, feature flags, paths) | `shell/exports.sh` | yes |
 | Secrets (tokens, API keys, passwords) | `.env` | **never** |
 
-`.exports` is sourced by both shells — by `.bash_profile` through its
-`~/.{bash_prompt,exports,aliases,functions}` loop, and by `.zshrc` through
-an explicit `source` line. Its **last** statement loads `~/.env.local` when
-that file is readable, so a secret always wins over a value declared above
-it.
+`shell/exports.sh` is one of the fragments `shell/index.sh` sources for
+both shells. `shell/index.sh`'s **last** step loads `~/.env.local` when
+that file is readable — after every other fragment, including the role
+one — so a secret always wins over a value declared above it.
 
 `.env` follows the same symlink layout as every other dotfile here — it
 lives at the root of the repo and `configure_dotfiles.sh` links it to
-`~/.env.local`, the name `.exports` sources — with one deliberate exception:
-**it is the only dotfile in this repo that is never committed.** A single
-`.gitignore` rule is what stands between it and a public push, so never
-`git add -f .env`. It is a plain shell fragment of `export KEY="value"`
-lines, mode `600`.
+`~/.env.local`, the file `shell/index.sh` sources last — with one
+deliberate exception: **it is the only dotfile in this repo that is never
+committed.** A single `.gitignore` rule is what stands between it and a
+public push, so never `git add -f .env`. It is a plain shell fragment of
+`export KEY="value"` lines, mode `600`.
 
 `.env.example` is the versioned template. It documents every key the setup
 expects, with empty values, and is the only `.env*` file this repo tracks.
@@ -95,16 +123,16 @@ never overwrites an existing `.env`, and backs up a pre-existing
 Adding a variable:
 
 1. Not a secret → add it to the "Application environment" section of
-   `.exports`, done.
+   `shell/exports.sh`, done.
 2. A secret → declare the key (empty) in `.env.example`, then fill the value
    in `.env` on each machine.
 
 **GUI apps do not see any of this.** These are shell exports: they reach
 terminals, scripts, and CLI-launched processes. A macOS app started from the
 Dock inherits its environment from `launchd`, so Claude Desktop and friends
-read their own config files instead — `AIRMAIL_MCP_PORT` in `.exports`
-reaches an Airmail MCP server started from a shell, not the one Claude
-Desktop spawns.
+read their own config files instead — `AIRMAIL_MCP_PORT` in
+`shell/exports.sh` reaches an Airmail MCP server started from a shell, not
+the one Claude Desktop spawns.
 
 ## Git hooks (`hooks/`)
 
@@ -147,9 +175,9 @@ session, wired in `.claude/settings.json`. Two of them:
 - **`no-plaintext-secrets.sh`** (PreToolUse) refuses a write that would
   put a literal credential into one of the tracked shell config files.
   These are published to a public repo *and* symlinked into `$HOME`, so
-  a token pasted into `.exports` leaks on the next push and rewriting
-  history doesn't un-leak it. A reference (`"$MY_KEY"`, `$(...)`) is
-  allowed — that's the pattern to use, with the value in the
+  a token pasted into `shell/exports.sh` leaks on the next push and
+  rewriting history doesn't un-leak it. A reference (`"$MY_KEY"`, `$(...)`)
+  is allowed — that's the pattern to use, with the value in the
   unversioned `~/.env.local` (see above). It also guards `.env.example`,
   the one place a real value is likeliest to be pasted by mistake.
 

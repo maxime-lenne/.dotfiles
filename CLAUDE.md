@@ -44,8 +44,11 @@ a single extracted section by hand — do not run the script.
   arrays, no `${var^^}`/`${var,,}`, no `mapfile`/`readarray`, no `**`
   globbing. `hooks/pre-commit` is written to the same constraint even
   though git could invoke a newer bash.
-- **asdf shims must stay first on `PATH`** (`.zshrc`, `.bashrc`). Anything
-  inserted before them silently shadows the version-managed Ruby/Node.
+- **asdf shims must stay first on `PATH`** among *absolute* directories
+  (`shell/path.sh` guarantees it). The one deliberate exception is
+  `./bin:./node_modules/.bin`, which sit ahead of them so a bare `rails`
+  finds the project's binstub — that binstub delegates to bundler and so to
+  the asdf Ruby, so the constraint's intent holds. Don't "fix" it.
 - **asdf / uv / bun are the only version managers.** nvm, pyenv and rvm
   were removed from both machines on 2026-08-28 and neither role installs
   them. Don't reintroduce them; `clean-mac.sh` keeps a section that
@@ -77,19 +80,27 @@ size reported before the prompt and accumulated into `TOTAL_FREED_KB`.
 Preserve that shape: size → explain → ask → `run`. It is macOS-only by
 design; Linux servers are explicitly out of scope.
 
-**Shell config has two divergent entry points**, and this is the repo's
-main known wart:
+**Shell config loads through one file.** `shell/index.sh` is sourced by
+both `.zshrc` and `.bashrc` and is the only place that decides load order:
+`path` → `exports` → `aliases` → `functions` → `role-$MACHINE_ROLE` →
+`~/.env.local` (last, so a secret overrides everything above it). Add a
+fragment there, once — not in an rc file.
 
-- zsh: `.zshrc` loads oh-my-zsh with `ZSH_CUSTOM` pointed at this repo's
-  `custom/`, then sources `.aliases` — but **not** `.exports` or
-  `.functions`; it re-declares its own exports inline instead.
-- bash: `.bash_profile` sources `.bash_prompt`, `.exports`, `.aliases`,
-  `.functions` in a loop, and `.bashrc` sources `.bash_profile`.
+`$HOME` holds three shell files: `.zshrc`, `.bashrc`, and a `.bash_profile`
+that does nothing but source `.bashrc` (bash does not read `.bashrc` in a
+login shell, and Terminal.app and ssh both start one). Anything genuinely
+shell-specific — oh-my-zsh, `compinit`, `PS1`, completions — stays in its
+rc file; everything else belongs under `shell/`.
 
-So `.exports` and `.functions` are bash-only today, and several exports
-(`EDITOR`, `BUNDLER_EDITOR`, `GPG_TTY`) exist in both places with drift.
-Unifying this is a tracked task in `docs/TASKs.md` — treat any edit to these
-five files as touching a known-inconsistent surface, and check both paths.
+`shell/index.sh` and every shared fragment are read by bash 3.2 **and**
+zsh: no arrays at all (0-indexed in bash, 1-indexed in zsh), no bashisms,
+no zshisms. Each carries `# shellcheck shell=bash` and is covered by the
+pre-commit hook.
+
+Role detection is duplicated from `detect_machine_role` in
+`dotfiles-lib.sh` on purpose — that file runs `tput` at load time and
+exports `BOLD`/`GREEN`/`RESET` plus `section`/`ask`/… into the interactive
+namespace. Keep the two rules in step.
 
 **`custom/plugins/`** is vendored third-party oh-my-zsh code
 (zsh-autosuggestions, zsh-syntax-highlighting, aterminal, elixir). Don't
@@ -98,10 +109,11 @@ pre-commit hook will flag upstream's style — `git commit --no-verify` is
 the right answer there, not patching vendored code.
 
 **`configure_dotfiles.sh`** symlinks a hardcoded list of dotfiles into
-`$HOME`. Its `mv "$target" "$target.backup"` runs unconditionally, so it
-errors on a machine where the file doesn't exist yet, and re-running it
-overwrites a previous backup — the `TODO` at the top of the file. Adding a
-new dotfile to the repo means adding its name to that brace expansion.
+`$HOME` and is idempotent since 2026-09-15: it backs up a real file once,
+skips a re-run whose link already points at the repo, and removes its own
+stale symlinks for the four files that moved into `shell/`. Adding a new
+dotfile to the repo means adding its name to the relevant `for name in …`
+loop.
 
 ## Conventions
 
