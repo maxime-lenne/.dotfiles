@@ -1,87 +1,50 @@
 ZSH=$HOME/.oh-my-zsh
+ZSH_CUSTOM="${DOTFILES:-$HOME/.dotfiles}/custom"
 
 # You can change the theme with another one:
 #   https://github.com/robbyrussell/oh-my-zsh/wiki/themes
 ZSH_THEME="baboriginal"
 
-ZSH_CUSTOM=$HOME/.dotfiles/custom
-
-# Useful plugins for Rails development with Sublime Text
 plugins=(gitfast last-working-dir common-aliases sublime zsh-syntax-highlighting history-substring-search elixir aterminal history zsh-autosuggestions)
 
-# Prevent Homebrew from reporting - https://github.com/Homebrew/brew/blob/master/share/doc/homebrew/Analytics.md
-export HOMEBREW_NO_ANALYTICS=1
-
-# Actually load Oh-My-Zsh
+# oh-my-zsh FIRST, so that everything shell/ declares below wins over the
+# plugin defaults rather than the other way round.
 source "${ZSH}/oh-my-zsh.sh"
-source ~/.aliases
-unalias rm # No interactive rm by default (brought by plugins/common-aliases)
 
+# Everything shared with bash: PATH, exports, aliases, functions, the role
+# fragment and ~/.env.local. See shell/index.sh for the order.
+. "${DOTFILES:-$HOME/.dotfiles}/shell/index.sh"
 
-export PATH="/opt/homebrew/opt/libxml2/bin:$PATH"
-export PATH="/opt/homebrew/opt/libxslt/bin:$PATH"
-export PATH="/opt/homebrew/opt/libiconv/bin:$PATH"
+# AFTER index.sh: undoes the interactive `rm -i` that oh-my-zsh's
+# common-aliases plugin installs. Run any earlier and the plugin would just
+# put it back.
+unalias rm 2>/dev/null
 
-# asdf shims first: it's the single version manager for Ruby, Node...
-# (replaces rbenv/nvm/rvm, all removed). Must come before any other
-# tool-specific PATH entry so asdf-managed versions take priority.
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:${PATH}"
+# zsh equivalents of the bash-only HISTCONTROL/HISTIGNORE set in
+# shell/exports.sh, so history behaves the same in both shells.
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
 
-# ruby-build (which asdf's ruby plugin relies on) compiles Ruby against
-# this OpenSSL. openssl@3 since 2026-08-28: Ruby 3.3.5 builds and links
-# against it fine (verified: OpenSSL::OPENSSL_VERSION reports 3.6.3),
-# and openssl@1.1 is EOL upstream with nothing left depending on it.
-export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@3)"
+# --- Completions (zsh-specific; the bash halves live in .bashrc) ---
 
-export GPG_TTY=$(tty)
+if command -v brew >/dev/null 2>&1; then
+  fpath=("$(brew --prefix asdf)/share/zsh/site-functions" $fpath)
+fi
 
-# Rails and Ruby uses the local `bin` folder to store binstubs.
-# So instead of running `bin/rails` like the doc says, just run `rails`
-# Same for `./node_modules/.bin` and nodejs
-export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
+# Docker Desktop's completions, workstation only — the Mac mini runs colima.
+if [ "${MACHINE_ROLE:-}" = "workstation" ] && [ -d "$HOME/.docker/completions" ]; then
+  fpath=("$HOME/.docker/completions" $fpath)
+fi
 
-# Store your own aliases in the ~/.aliases file and load the here.
-[[ -f "$HOME/.aliases" ]] && source "$HOME/.aliases"
-
-# Encoding stuff for the terminal
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
-export LC_CTYPE="en_US.UTF-8"
-
-# Shared exports for both shells. Sourced here since 2026-09-04: .exports was
-# bash-only, so EDITOR/BUNDLER_EDITOR were re-declared inline here and drifted.
-# It also pulls in the application environment (AIRMAIL_MCP_*) and, last, the
-# machine-local secrets from ~/.env.local. Kept after oh-my-zsh so this file
-# wins over the plugin defaults.
-[[ -f "$HOME/.exports" ]] && source "$HOME/.exports"
-
-
-export PATH="/Users/maxime-lenne/.local/bin:$PATH"
-
-# Scaleway CLI autocomplete initialization.
-eval "$(scw autocomplete script shell=zsh)"
-
-autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C /opt/homebrew/bin/terraform terraform
-
-alias k8s-scaleway="export KUBECONFIG=~/.kube/config_scaleway"
-alias k8s-staging="export KUBECONFIG=~/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity.yaml"
-
-fpath=($(brew --prefix asdf)/share/zsh/site-functions $fpath)
-# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/maxime-lenne/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
-# End of Docker CLI completions
 
-export PATH="$HOME/bin:$PATH"
+# terraform ships a bash-style completion; bashcompinit adapts it.
+if command -v terraform >/dev/null 2>&1; then
+  autoload -U +X bashcompinit && bashcompinit
+  complete -o nospace -C "$(command -v terraform)" terraform
+fi
 
-# bun completions
-[ -s "/Users/maxime-lenne/.oh-my-zsh/completions/_bun" ] && source "/Users/maxime-lenne/.oh-my-zsh/completions/_bun"
+command -v scw >/dev/null 2>&1 && eval "$(scw autocomplete script shell=zsh)"
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Added by Antigravity
-export PATH="/Users/maxime-lenne/.antigravity/antigravity/bin:$PATH"
+[ -r "$HOME/.oh-my-zsh/completions/_bun" ] && source "$HOME/.oh-my-zsh/completions/_bun"
