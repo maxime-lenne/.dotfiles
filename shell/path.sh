@@ -38,17 +38,21 @@ path_append "/usr/local/sbin"
 # CLAUDE.md's "shims first" hard constraint false in practice.
 path_prepend "${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 
-# The ONE deliberate exception to "shims first", and the reason it is not
-# a violation: inside a Rails or node project a bare `rails` must resolve
-# to the project's ./bin/rails binstub, which re-execs through bundler and
-# therefore through the asdf Ruby. The constraint exists so that no *tool*
-# path shadows an asdf version; a project-local binstub does not.
-#
-# Accepted trade-off (2026-09-15): `cd` into an untrusted clone and a bare
-# command may run that repository's bin/. Do not "fix" this by moving the
-# two entries down — it is a decision, not an oversight.
-path_prepend "./node_modules/.bin"
-path_prepend "./bin"
+# The project-local binstubs (./bin, ./node_modules/.bin) are NOT added
+# here. They are the one deliberate exception to "shims first" — inside a
+# Rails or node project a bare `rails` must resolve to the project's
+# ./bin/rails binstub, which re-execs through bundler and therefore
+# through the asdf Ruby — but this file loads FIRST in shell/index.sh, so
+# adding them here put them ahead of everything index.sh sources
+# afterwards: `brew --prefix` in shell/exports.sh, and the terraform/asdf/
+# scw completions in .zshrc and .bashrc, two of which are `eval`'d. A repo
+# with an executable ./bin/brew or ./bin/scw got to run its own code at
+# shell startup just from having its cwd open in a new terminal. Moved
+# 2026-09-15 to the very end of .zshrc and .bashrc instead, after every
+# completion block, so they land on PATH only once the rest of startup
+# has already resolved its tools. See those files for the accepted
+# trade-off note: a bare command typed at the prompt can still hit a
+# repository's bin/, which is the residual, intended risk.
 
 # Removed 2026-09-15:
 #   - /opt/homebrew/opt/{libxml2,libxslt,libiconv}/bin — these shadowed the

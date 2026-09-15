@@ -48,3 +48,12 @@ fi
 command -v scw >/dev/null 2>&1 && eval "$(scw autocomplete script shell=zsh)"
 
 [ -r "$HOME/.oh-my-zsh/completions/_bun" ] && source "$HOME/.oh-my-zsh/completions/_bun"
+
+# LAST, deliberately: the project-local binstubs go on PATH only once this
+# file has finished running. Added here rather than in shell/path.sh on
+# 2026-09-15 because path.sh loads first, which meant `brew --prefix`,
+# `scw autocomplete` and the asdf/terraform completions above all resolved
+# through a repository's ./bin — and two of those are eval'd. Opening a
+# terminal inside an untrusted clone was enough to run its code.
+path_prepend "./node_modules/.bin"
+path_prepend "./bin"
