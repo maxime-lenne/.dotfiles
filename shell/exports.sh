@@ -14,6 +14,13 @@ export BUNDLER_EDITOR="$EDITOR"
 # Don't clear the screen after quitting a manual page
 export MANPAGER="less -X"
 
+# bun's install root. Declared in .zshrc only until 2026-09-15 (zsh-only,
+# same drift as the encoding exports below), and dropped outright when
+# .zshrc was cut down to the shell-specific bits — bun still resolves via
+# the $HOME/.bun/bin entry shell/path.sh adds, but `bun upgrade` and global
+# installs use this variable to find their install root.
+export BUN_INSTALL="$HOME/.bun"
+
 # Encoding. Declared in .zshrc only until 2026-09-15, so bash had none.
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
