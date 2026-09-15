@@ -10,16 +10,29 @@ DOTFILES_DIR="$PWD"
 
 # Symlinks this script used to create and no longer should. Left in place
 # they would dangle, since their targets no longer exist in the repo.
-# Only removed when they really are OUR symlink: a real file means a
-# machine that was never set up this way, and it is not ours to delete.
+# Only removed when they really are OUR symlink: pointing somewhere inside
+# this repo. A dangling link with no target check used to get removed
+# regardless of what it pointed at (or used to point at, since a broken
+# link's readlink target is still readable) — a ~/.exports linked into an
+# unmounted volume or a second checkout was silently deleted. Fixed
+# 2026-09-15: gate both the dangling and the moved-into-shell/ case on the
+# same ownership check.
 for name in .aliases .exports .functions .bash_prompt; do
   link="$HOME/$name"
-  if [ -L "$link" ] && [ ! -e "$link" ]; then
-    echo "-----> Removing the now-dangling $link"
-    rm "$link"
-  elif [ -L "$link" ] && case "$(readlink "$link")" in "$DOTFILES_DIR"/*) true ;; *) false ;; esac; then
-    echo "-----> Removing $link (moved into shell/)"
-    rm "$link"
+  if [ -L "$link" ]; then
+    case "$(readlink "$link")" in
+      "$DOTFILES_DIR"/*)
+        if [ -e "$link" ]; then
+          echo "-----> Removing $link (moved into shell/)"
+        else
+          echo "-----> Removing the now-dangling $link"
+        fi
+        rm "$link"
+        ;;
+      *)
+        echo "-----> Leaving $link alone: a symlink we don't own"
+        ;;
+    esac
   elif [ -e "$link" ]; then
     echo "-----> Leaving $link alone: a real file, not one of ours"
   fi
@@ -68,14 +81,17 @@ if [ ! -e "$env_file" ]; then
 fi
 chmod 600 "$env_file"
 
-# Unlike the loop above, this one does not clobber: .env.local is the only
-# copy of the secrets on a machine that has not been set up this way yet.
+# Unlike the loop above used to, this one does not clobber: .env.local is
+# the only copy of the secrets on a machine that has not been set up this
+# way yet, so an un-timestamped backup on a second run would overwrite the
+# first. Timestamped since 2026-09-15, same form as the dotfile loop above.
 if [ -L "$env_link" ] && [ "$(readlink "$env_link")" = "$env_file" ]; then
   echo "-----> $env_link already points at $env_file"
 else
   if [ -e "$env_link" ] || [ -L "$env_link" ]; then
-    echo "-----> Backing up $env_link to $env_link.backup"
-    mv "$env_link" "$env_link.backup"
+    env_backup="$env_link.backup.$(date +%Y%m%d%H%M%S)"
+    echo "-----> Backing up $env_link to $env_backup"
+    mv "$env_link" "$env_backup"
   fi
   echo "-----> Symlinking $env_file to $env_link"
   ln -s "$env_file" "$env_link"
