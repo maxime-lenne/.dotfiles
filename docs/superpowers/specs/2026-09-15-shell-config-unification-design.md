@@ -174,11 +174,17 @@ Verified against the actual machine on 2026-09-15, not assumed.
 | `./bin:./node_modules/.bin` | **Kept at the head**, unchanged — see "PATH order" below |
 | `HISTCONTROL`, `HISTIGNORE`, `HISTFILESIZE` | Stay in `exports.sh` (harmless under zsh); zsh gains the equivalent `setopt HIST_IGNORE_DUPS` / `HIST_IGNORE_SPACE` |
 
-### Kept behind a `command -v` guard, and added to `install-deps.sh`
+### Kept behind a `command -v` guard
 
-`lc` / `colorls`, and `heroku`. Both are wanted but absent; the guard means
-nothing breaks before they are installed and the alias reappears by itself
-afterwards. Workstation role only.
+`lc` / `colorls`. Wanted but absent; the guard means nothing breaks before it
+is installed and the alias reappears by itself afterwards. Workstation only.
+
+`install-deps.sh` is **not modified**: checked on 2026-09-15, it already
+declares `gem install rails`, `gem install jekyll` and `gem install colorls`
+(Ruby section, l. 176-184) and `heroku/brew/heroku` (l. 265-268). What the
+audit actually found is machine drift, not a missing declaration — of the
+four gems that section installs, only `bundler` and `jekyll` are present in
+the asdf Ruby 3.3.5. Recorded in `docs/TASKs.md`, out of scope here.
 
 ### Promoted to the shared core
 
@@ -220,7 +226,8 @@ later session does not "fix" it.
 Related finding, **out of scope for this change**: `rails` currently resolves
 to `/usr/bin/rails`, Apple's `#!/usr/bin/ruby` stub, because no `rails` gem
 is installed in the asdf Ruby and so no shim exists. Inside a project `./bin`
-hides this; outside one, `rails new` does not work.
+hides this; outside one, `rails new` does not work. `install-deps.sh` already
+declares the gem — the fix is to re-run its Ruby section, not to edit it.
 
 ### Role split
 
@@ -255,8 +262,6 @@ four broken symlinks. `configure_dotfiles.sh` therefore:
    forces a re-run on two machines: no `mv` when the target is already the
    intended symlink, no error when the target does not exist, and a
    timestamped backup instead of clobbering the previous one.
-
-`install-deps.sh` gains `colorls` and `heroku` under the workstation role.
 
 ## Verification
 
