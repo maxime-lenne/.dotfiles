@@ -9,8 +9,13 @@
 # on 2026-09-15 silently cost zsh cp_p, extract and gifify until the
 # fingerprint diff caught it. Clearing the names first is cheap, and keeps a
 # future name collision from failing silently.
+# `|| true` added 2026-09-15: unalias exits 1 when the name isn't aliased.
+# The redirect hides stderr but not the status, so under `set -e` this loop
+# would abort the file on the very first non-aliased name — the same
+# silent-abort failure mode this guard exists to prevent, reintroduced by a
+# different trigger.
 for _dotfiles_fn in server ips cp_p extract gifify; do
-  unalias "$_dotfiles_fn" 2>/dev/null
+  unalias "$_dotfiles_fn" 2>/dev/null || true
 done
 unset _dotfiles_fn
 
