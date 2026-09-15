@@ -1,5 +1,8 @@
 # @gf3’s Sexy Bash Prompt, inspired by “Extravagant Zsh Prompt”
 # Shamelessly copied from https://github.com/gf3/dotfiles
+#
+# Moved here from ~/.bash_prompt on 2026-09-15. Sourced by .bashrc directly,
+# not by the shared shell/index.sh loader: it sets PS1 and is bash-only.
 
 if [[ $COLORTERM = gnome-* && $TERM = xterm ]] && infocmp gnome-256color >/dev/null 2>&1; then
 	export TERM=gnome-256color
