@@ -88,3 +88,12 @@ Tu veux que je t'aide à mettre ça en place ?
   d'un projet tombe sur `/usr/bin/rails`, le stub Apple en `#!/usr/bin/ruby`,
   et l'alias `lc` reste inactif. Relancer la section Ruby d'`install-deps.sh`
   puis `asdf reshim ruby`.
+- Trou dans la regex de `.claude/hooks/no-plaintext-secrets.sh` (constaté
+  le 2026-09-15, en vérifiant le correctif du chemin `shell/*.sh`) : le nom
+  de variable doit avoir au moins un caractère avant le mot-clé — `export
+  API_KEY="..."` ou `export TOKEN="..."` seuls ne matchent pas
+  `[A-Za-z_][A-Za-z0-9_]*(TOKEN|...|API_?KEY|...)`, faute de caractère
+  disponible pour le groupe précédent, alors que `MY_API_KEY` ou `GH_TOKEN`
+  sont bien détectés. Pas corrigé dans ce lot (hors du périmètre demandé) ;
+  un correctif possible est de rendre le préfixe optionnel
+  (`[A-Za-z0-9_]*` au lieu de `[A-Za-z_][A-Za-z0-9_]*`).
