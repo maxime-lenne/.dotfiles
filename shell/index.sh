@@ -24,7 +24,7 @@ fi
 # copies must be kept in step — dotfiles-lib.sh carries the matching note.
 if [ -z "${MACHINE_ROLE:-}" ]; then
   case "$(hostname | tr '[:upper:]' '[:lower:]')" in
-    *mac-mini*|*macmini*) MACHINE_ROLE="server" ;;
+    *mac-mini*|*macmini*|*"mac mini"*) MACHINE_ROLE="server" ;;
     *) MACHINE_ROLE="workstation" ;;
   esac
 fi
