@@ -288,13 +288,13 @@ for entry in "pyenv|$HOME/.pyenv|remplacé par uv (uv python install / uv venv)"
     size=$(kb_to_human "$(dir_size_kb "$dir")")
     warn "$name détecté ($dir, $size) — $reason"
     if have_cmd "$name"; then
-      warn "$name est encore actif dans ce shell (trouvé dans le PATH) — vérifie tes fichiers .zshrc/.bash_profile avant de supprimer."
+      warn "$name est encore actif dans ce shell (trouvé dans le PATH) — vérifie shell/path.sh et shell/exports.sh avant de supprimer (depuis le 2026-09-15, .bash_profile n'est qu'un stub et .zshrc/.bashrc ne font que déléguer à shell/index.sh, donc ce ne sont plus les bons fichiers à grep)."
     fi
     if ask_to_clean "la suppression complète de $name ($dir, $size) — désinstallation, pas juste le cache"; then
       before=$(dir_size_kb "$dir")
       run rm -rf "${dir:?}"
       report_freed "$name (suppression complète)" "$before" "$dir"
-      warn "Pense à retirer les lignes d'initialisation de $name de tes fichiers shell (.zshrc/.bash_profile) si elles y sont encore."
+      warn "Pense à retirer les lignes d'initialisation de $name de shell/path.sh ou shell/exports.sh si elles y sont encore (plus dans .zshrc/.bash_profile depuis le 2026-09-15)."
     fi
   fi
 
