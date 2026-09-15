@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # @gf3’s Sexy Bash Prompt, inspired by “Extravagant Zsh Prompt”
 # Shamelessly copied from https://github.com/gf3/dotfiles
 #
@@ -48,7 +49,11 @@ function parse_git_branch() {
 
 # Always show username/host
 function usernamehost() {
-	echo "${MAGENTA}$USER ${WHITE}at ${ORANGE}$HOSTNAME $WHITEin ";
+	# ${WHITE}in, not $WHITEin: the unbraced form had shellcheck silently
+	# expanding an unset $WHITEin to nothing since this file existed, which
+	# is why "in" never rendered in the prompt. Caught 2026-09-15, the first
+	# time this file was ever linted.
+	echo "${MAGENTA}$USER ${WHITE}at ${ORANGE}$HOSTNAME ${WHITE}in ";
 }
 
 # iTerm Tab and Title Customization and prompt customization
