@@ -152,7 +152,7 @@ Verified against the actual machine on 2026-09-15, not assumed.
 | `alias find=gfind` | `gfind` absent → `find` currently unusable |
 | `sniff`, `httpdump` | `ngrep` absent, and they target `en1`, which has no IP (`en0` is the live interface) |
 | `ftp_server_start` / `_stop` | `/System/Library/LaunchDaemons/ftp.plist` no longer ships with macOS |
-| `postgresql_server_*`, `redis_*` | No such plist present; `brew services` is the current way |
+| `postgresql_server_*`, `redis_*` | No such plist present; `brew services` is the current way. Removed outright rather than rewritten, per decision of 2026-09-15 |
 | `undopush` | `git push -f origin HEAD^:master` — force-push, `master` hardcoded |
 | Heroku Toolbelt `PATH` entry | `/usr/local/heroku/bin` does not exist; the current formula installs into `/opt/homebrew/bin`, already on `PATH` |
 | `# FIX: type -t md5sum...` | Dead comment |
@@ -171,7 +171,7 @@ Verified against the actual machine on 2026-09-15, not assumed.
 | `cp_p`, `extract`, `gifify` | Unquoted `$1`/`$2` throughout (SC2086) → quoted; this is the repo's lint gate |
 | Hardcoded `/Users/maxime-lenne/...` paths | Seven of them across `.zshrc` and `.bash_profile` (Docker, bun completions, `.local/bin`, Antigravity, `$HOME/bin`) → `$HOME`, so the repo stops assuming a username |
 | `PATH` duplication | `path_prepend` / `path_append` drop an entry that is already present, so a nested shell or a `reload` stops stacking. 12 entries are duplicated today |
-| `./bin:./node_modules/.bin` | Kept — it is a deliberate Rails/node convenience — but moved to the **tail** of `PATH`. Relative directories at the head mean `cd` into a cloned repo runs its `bin/`. Comment records the trade-off |
+| `./bin:./node_modules/.bin` | **Kept at the head**, unchanged — see "PATH order" below |
 | `HISTCONTROL`, `HISTIGNORE`, `HISTFILESIZE` | Stay in `exports.sh` (harmless under zsh); zsh gains the equivalent `setopt HIST_IGNORE_DUPS` / `HIST_IGNORE_SPACE` |
 
 ### Kept behind a `command -v` guard, and added to `install-deps.sh`
@@ -189,6 +189,38 @@ twice today and will be declared once.
 `RUBY_CONFIGURE_OPTS` keeps its `$(brew --prefix openssl@3)` call: measured
 at 19 ms, not worth freezing, and it stays coupled to `install-deps.sh` as
 `CLAUDE.md` requires.
+
+### PATH order
+
+Measured on 2026-09-15, the asdf shims sit at **position 7**: four absolute
+directories precede them (`antigravity`, `.bun/bin`, `$HOME/bin`,
+`.local/bin`), each prepended by a later line of `.zshrc`. `CLAUDE.md`
+states "asdf shims must stay first on PATH" as a hard constraint, so the
+constraint is currently violated in fact. `path.sh` builds the order once
+and makes it true again:
+
+```
+./bin                 documented exception (see below)
+./node_modules/.bin
+<asdf shims>          first among absolute directories
+$HOME/.local/bin, $HOME/.bun/bin, antigravity,
+/opt/homebrew/bin, /usr/local/{bin,sbin}, system
+```
+
+The two relative directories stay **ahead of the shims**. That is a
+deliberate, documented exception, not an oversight: inside a Rails or node
+project, `rails` must resolve to the project's `bin/rails` binstub, which
+itself delegates to bundler and therefore to the asdf-managed Ruby. The
+constraint's purpose is that no *tool* path shadows an asdf version; a
+project-local binstub does not. The trade-off — `cd` into an untrusted clone
+and a bare command may run its `bin/` — is recorded in `path.sh`, and
+`CLAUDE.md`'s hard-constraint wording is amended to name the exception so a
+later session does not "fix" it.
+
+Related finding, **out of scope for this change**: `rails` currently resolves
+to `/usr/bin/rails`, Apple's `#!/usr/bin/ruby` stub, because no `rails` gem
+is installed in the asdf Ruby and so no shim exists. Inside a project `./bin`
+hides this; outside one, `rails new` does not work.
 
 ### Role split
 
