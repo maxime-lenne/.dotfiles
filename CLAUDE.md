@@ -21,15 +21,20 @@ and it runs against the user's live machine. That makes two things unusual:
 ## Verification (there are no tests)
 
 ```bash
-shellcheck -S info <file>           # the actual gate; -S info catches SC2086
+shellcheck -x -S info <file>        # the actual gate; -S info catches SC2086
 ./clean-mac.sh --dry-run            # exercises clean-mac.sh, deletes nothing
 bash -n install-deps.sh             # syntax-only check; there is no dry-run here
 ```
 
-`hooks/pre-commit` runs `shellcheck -S info` over the **staged** content of
-every `*.sh` and every extensionless file with a shell shebang. The tracked
-scripts are at a green baseline at that severity — keep them there rather
-than adding `# shellcheck disable` lines.
+`-x` is not optional: `shell/index.sh` and several fragments `source` other
+tracked files, and without `-x` shellcheck refuses to follow those (SC1091,
+error tier) instead of checking them in context — plain `shellcheck -S info`
+exits 1 on files that are otherwise clean.
+
+`hooks/pre-commit` runs `shellcheck -x -S info` over the **staged** content
+of every `*.sh` and every extensionless file with a shell shebang. The
+tracked scripts are at a green baseline at that severity — keep them there
+rather than adding `# shellcheck disable` lines.
 
 The hook only fires after `./configure_dotfiles.sh` (or
 `git config core.hooksPath hooks`) has run once in the clone, since
@@ -48,13 +53,20 @@ a single extracted section by hand — do not run the script.
   (`shell/path.sh` guarantees it). The one deliberate exception is
   `./bin:./node_modules/.bin`, which sit ahead of them so a bare `rails`
   finds the project's binstub — that binstub delegates to bundler and so to
-  the asdf Ruby, so the constraint's intent holds. Don't "fix" it.
+  the asdf Ruby, so the constraint's intent holds. Don't "fix" it. Those two
+  entries are added at the very end of `.zshrc` and `.bashrc` (not in
+  `shell/path.sh`, which loads first and, until 2026-09-15, put them ahead
+  of `brew --prefix`, `scw` and the asdf/terraform completions those rc
+  files run — two of which are `eval`'d, so opening a terminal in an
+  untrusted clone could execute its code). Keep them last, after every
+  completion block.
 - **asdf / uv / bun are the only version managers.** nvm, pyenv and rvm
   were removed from both machines on 2026-08-28 and neither role installs
   them. Don't reintroduce them; `clean-mac.sh` keeps a section that
   detects and removes leftovers, which is deliberate — don't delete it.
-- **`RUBY_CONFIGURE_OPTS` in `.zshrc` is coupled to `install-deps.sh`.**
-  Both pin `openssl@3`; changing the OpenSSL formula means changing both.
+- **`RUBY_CONFIGURE_OPTS` in `shell/exports.sh` is coupled to
+  `install-deps.sh`.** Both pin `openssl@3`; changing the OpenSSL formula
+  means changing both.
 
 ## Architecture
 
