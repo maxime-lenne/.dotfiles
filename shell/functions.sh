@@ -3,6 +3,17 @@
 # sourced by bash only; zsh never loaded it, which is the drift this move
 # closes.
 
+# zsh refuses to define a function whose name is already an alias — it is a
+# parse error that aborts the rest of the file, not just that definition.
+# oh-my-zsh's elixir plugin ships `alias ips='iex -S mix phx.server'`, which
+# on 2026-09-15 silently cost zsh cp_p, extract and gifify until the
+# fingerprint diff caught it. Clearing the names first is cheap, and keeps a
+# future name collision from failing silently.
+for _dotfiles_fn in server ips cp_p extract gifify; do
+  unalias "$_dotfiles_fn" 2>/dev/null
+done
+unset _dotfiles_fn
+
 # Start an HTTP server from a directory, optionally specifying the port.
 # python3 since 2026-09-15: the body used SimpleHTTPServer, a Python 2
 # module, and `python` no longer exists on macOS. The old version also
