@@ -27,6 +27,8 @@ alias showFiles='defaults write com.apple.finder AppleShowAllFiles YES; killall 
 alias hideFiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
 
 # Kubernetes contexts (were inline in .zshrc, so bash never had them)
+# $HOME is escaped so it resolves when the alias runs, not when it's
+# defined — that's what keeps SC2139 quiet here (2026-09-15).
 alias k8s-scaleway="export KUBECONFIG=\$HOME/.kube/config_scaleway"
 alias k8s-staging="export KUBECONFIG=\$HOME/Documents_non_icloud/workspace_devops/k8s-productivity/environments/staging/kubeconfig-k8s-productivity.yaml"
 

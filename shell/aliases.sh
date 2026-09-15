@@ -49,3 +49,5 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 #   undopush            `git push -f origin HEAD^:master` — a force-push with
 #                       the branch hardcoded.
 #   md5sum              a commented-out line that had never run.
+#   ips                 not dropped, relocated to shell/functions.sh — an
+#                       alias can't use $1 (SC2142).
