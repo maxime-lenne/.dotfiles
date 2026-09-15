@@ -41,9 +41,20 @@ export GPG_TTY
 # against it fine, and openssl@1.1 is EOL upstream. Kept coupled to
 # install-deps.sh, which pins the same formula — change both or neither.
 # The brew call costs 19 ms (measured 2026-09-15), not worth freezing.
+#
+# Guarded on the output, not just on `brew` existing (2026-09-15): a
+# freshly-provisioned Mac mini can have brew installed before the
+# openssl@3 formula is, and `brew --prefix openssl@3` fails on a formula
+# it doesn't know about. Without this, that failure was silent — an
+# exported RUBY_CONFIGURE_OPTS="--with-openssl-dir=" that later made
+# `asdf install ruby` build against nothing.
 if command -v brew >/dev/null 2>&1; then
-  RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@3)"
-  export RUBY_CONFIGURE_OPTS
+  _openssl3_prefix="$(brew --prefix openssl@3 2>/dev/null)"
+  if [ -n "$_openssl3_prefix" ]; then
+    RUBY_CONFIGURE_OPTS="--with-openssl-dir=$_openssl3_prefix"
+    export RUBY_CONFIGURE_OPTS
+  fi
+  unset _openssl3_prefix
 fi
 
 # Larger history. 50000 since 2026-09-04, matching oh-my-zsh's own HISTSIZE

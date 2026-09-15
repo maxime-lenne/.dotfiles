@@ -59,8 +59,17 @@ payload=$(printf '%s' "$input" | jq -r '.tool_input.content // .tool_input.new_s
 # An assignment whose *name* looks like a credential and whose value is
 # a literal. Anchoring on the assignment keeps prose and comments out of
 # it: a line mentioning "password" is not a leak.
+#
+# The prefix before the keyword is `[A-Za-z0-9_]*` (was
+# `[A-Za-z_][A-Za-z0-9_]*` — fixed 2026-09-15, closing the docs/TASKs.md
+# entry recorded the same day): the old version required at least one
+# character before the keyword, so a bare `API_KEY=`, `TOKEN=` or
+# `SECRET=` — the three likeliest names to actually get pasted, since
+# they're what most services' docs tell you to export — had nothing to
+# match that group and slipped through, while `MY_API_KEY` or `GH_TOKEN`
+# were caught. A disarmed check on a public repo is not a follow-up.
 hits=$(printf '%s\n' "$payload" \
-  | grep -inE '^[[:space:]]*(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|CREDENTIALS?)[A-Za-z0-9_]*=' \
+  | grep -inE '^[[:space:]]*(export[[:space:]]+)?[A-Za-z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|CREDENTIALS?)[A-Za-z0-9_]*=' \
   | grep -vE '=[[:space:]]*("?\$|`|"")' \
   || true)
 
