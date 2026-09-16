@@ -62,6 +62,63 @@ chmod 755 configure_dotfiles.sh
 `configure_dotfiles.sh` also points git at this repo's own hooks — see
 below.
 
+## Migrating a machine set up before 2026-09-15
+
+On a machine already configured under the old layout — nine shell dotfiles
+in `$HOME`, with `.aliases`, `.exports`, `.functions` and `.bash_prompt`
+among them — the migration is just running `configure_dotfiles.sh` again.
+It is idempotent. Two things are worth knowing first.
+
+**The dotfiles in `$HOME` are symlinks into this checkout**, so the moment
+you check out a branch or pull, every shell opened *afterwards* reads the
+new files. Nothing already open changes: a running shell loaded its
+configuration once and will not reload it. That open shell is your way
+back, so keep one until you have verified the result.
+
+**Nothing breaks if you never run the script.** The new `.zshrc` and
+`.bashrc` arrive through symlinks that already exist and reference nothing
+that moved; the four obsolete links simply dangle. Running it is cleanup,
+not a prerequisite.
+
+```bash
+cd ~/.dotfiles
+git checkout master && git pull
+./configure_dotfiles.sh
+```
+
+What it does on such a machine:
+
+- Removes `~/.aliases`, `~/.exports`, `~/.functions` and `~/.bash_prompt` —
+  but **only** where they are symlinks pointing inside this repo. A real
+  file, or a symlink into a second checkout or an unmounted volume, is
+  reported and left alone.
+- Re-links `.bashrc`, `.bash_profile`, `.zshrc`, `.gitconfig` and
+  `.gitignore_global`, backing up anything already in place to
+  `<name>.backup.<timestamp>`. Re-running never clobbers an earlier backup,
+  and a link already pointing at the right file is left as it is.
+- Leaves `~/.env.local` and the `.env` behind it alone when they are already
+  correct — that file is the only copy of a machine's secrets.
+
+Then open a **new** terminal — not the one you ran it from — and check:
+
+```bash
+echo "$PATH" | tr ':' '\n' | head -3  # ./bin, ./node_modules/.bin, asdf shims
+type extract                           # a function, in zsh as well as bash
+echo "$MACHINE_ROLE"                   # workstation, or server on the Mac mini
+bash -lc 'command -v ruby'             # the asdf shim, not /usr/bin/ruby
+```
+
+`type extract` is the one that matters most: `.functions` was never sourced
+by zsh before this layout, so a zsh that knows `extract` is the proof the
+migration took.
+
+If something is wrong, the shell you started from is still open and still
+working. The way back:
+
+```bash
+cd ~/.dotfiles && git checkout <previous-commit> && ./configure_dotfiles.sh
+```
+
 ## Shell configuration (`shell/`)
 
 `$HOME` only ever gets three shell files symlinked in: `.zshrc`, `.bashrc`,
