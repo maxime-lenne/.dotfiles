@@ -1,19 +1,68 @@
 #!/bin/bash
 
-# Symlink each dotfile in the home directory
+# Symlink each dotfile into the home directory.
+#
+# The list shrank on 2026-09-15: .aliases, .exports, .functions and
+# .bash_prompt moved into shell/, which .zshrc and .bashrc reach through
+# shell/index.sh. $HOME keeps three shell files instead of nine.
 
-for name in .{aliases,bash_profile,bash_prompt,bashrc,exports,functions,gitconfig,gitignore_global,zshrc}; do
-  source="$PWD/$name"
+DOTFILES_DIR="$PWD"
+
+# Symlinks this script used to create and no longer should. Left in place
+# they would dangle, since their targets no longer exist in the repo.
+# Only removed when they really are OUR symlink: pointing somewhere inside
+# this repo. A dangling link with no target check used to get removed
+# regardless of what it pointed at (or used to point at, since a broken
+# link's readlink target is still readable) — a ~/.exports linked into an
+# unmounted volume or a second checkout was silently deleted. Fixed
+# 2026-09-15: gate both the dangling and the moved-into-shell/ case on the
+# same ownership check.
+for name in .aliases .exports .functions .bash_prompt; do
+  link="$HOME/$name"
+  if [ -L "$link" ]; then
+    case "$(readlink "$link")" in
+      "$DOTFILES_DIR"/*)
+        if [ -e "$link" ]; then
+          echo "-----> Removing $link (moved into shell/)"
+        else
+          echo "-----> Removing the now-dangling $link"
+        fi
+        rm "$link"
+        ;;
+      *)
+        echo "-----> Leaving $link alone: a symlink we don't own"
+        ;;
+    esac
+  elif [ -e "$link" ]; then
+    echo "-----> Leaving $link alone: a real file, not one of ours"
+  fi
+done
+
+for name in .bashrc .bash_profile .zshrc .gitconfig .gitignore_global; do
+  source="$DOTFILES_DIR/$name"
   target="$HOME/$name"
-  mv "$target" "$target.backup"
+
+  # Idempotent since 2026-09-15 (the TODO this file used to carry): an
+  # unconditional `mv` errored when the target did not exist yet and
+  # overwrote the previous backup on every re-run. This change forces a
+  # re-run on both machines, so it had to be fixed first.
+  if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
+    echo "-----> $target already points at $source"
+    continue
+  fi
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    backup="$target.backup.$(date +%Y%m%d%H%M%S)"
+    echo "-----> Backing up $target to $backup"
+    mv "$target" "$backup"
+  fi
   echo "-----> Symlinking $source to $target"
   ln -s "$source" "$target"
 done
 
 # Machine-local secrets. The values live in .env at the root of this repo —
 # kept out of every commit by .gitignore — and $HOME gets a symlink named
-# .env.local, which is what .exports sources. Same shape as the dotfiles
-# above: one file to edit, in the repo, linked into place.
+# .env.local, which is what shell/index.sh sources. Same shape as the
+# dotfiles above: one file to edit, in the repo, linked into place.
 # Note the asymmetry with the rest: .env is deliberately NOT versioned, so
 # a fresh clone has none and it is seeded from .env.example.
 env_file="$PWD/.env"
@@ -32,14 +81,17 @@ if [ ! -e "$env_file" ]; then
 fi
 chmod 600 "$env_file"
 
-# Unlike the loop above, this one does not clobber: .env.local is the only
-# copy of the secrets on a machine that has not been set up this way yet.
+# Unlike the loop above used to, this one does not clobber: .env.local is
+# the only copy of the secrets on a machine that has not been set up this
+# way yet, so an un-timestamped backup on a second run would overwrite the
+# first. Timestamped since 2026-09-15, same form as the dotfile loop above.
 if [ -L "$env_link" ] && [ "$(readlink "$env_link")" = "$env_file" ]; then
   echo "-----> $env_link already points at $env_file"
 else
   if [ -e "$env_link" ] || [ -L "$env_link" ]; then
-    echo "-----> Backing up $env_link to $env_link.backup"
-    mv "$env_link" "$env_link.backup"
+    env_backup="$env_link.backup.$(date +%Y%m%d%H%M%S)"
+    echo "-----> Backing up $env_link to $env_backup"
+    mv "$env_link" "$env_backup"
   fi
   echo "-----> Symlinking $env_file to $env_link"
   ln -s "$env_file" "$env_link"

@@ -15,7 +15,7 @@
 - **bash 3.2.** No associative arrays, no `${var^^}`/`${var,,}`, no `mapfile`, no `**`.
 - **No arrays at all** in `shell/index.sh` and every shared fragment: they are 0-indexed in bash and 1-indexed in zsh.
 - **asdf shims first among absolute directories.** `./bin` and `./node_modules/.bin` are the single documented exception and stay ahead of them.
-- Every file under `shell/` starts with `# shellcheck shell=bash` and must pass `shellcheck -S info`.
+- Every file under `shell/` starts with `# shellcheck shell=bash` and must pass `shellcheck -x -S info`. The `-x` matters: both real gates (`hooks/pre-commit` l. 69 and `.claude/hooks/shellcheck-on-write.sh` l. 56) pass it, and without it SC1091 fires on any file that sources another. A `# shellcheck source=` directive is the right tool there — it is not a `disable`.
 - **Never run** `install-deps.sh`, `clean-mac.sh` or `configure_dotfiles.sh` against the real `$HOME` to "check that it works". Task 10 is the only one that touches `$HOME`, and only after Task 9's diff is clean.
 - Comments explain the **why** and carry a date, matching the existing register.
 - Commits use gitmoji: an emoji, then a lowercase imperative summary.
@@ -216,7 +216,7 @@ export PATH
 
 - [ ] **Step 2: Lint**
 
-Run: `shellcheck -S info shell/path.sh`
+Run: `shellcheck -x -S info shell/path.sh`
 Expected: no output.
 
 - [ ] **Step 3: Test idempotence and order**
@@ -334,7 +334,7 @@ export AIRMAIL_MCP_AUTO_LAUNCH=0
 
 Run:
 ```bash
-shellcheck -S info shell/exports.sh && ! grep -q "env.local" shell/exports.sh && echo PASS
+shellcheck -x -S info shell/exports.sh && ! grep -q "env.local" shell/exports.sh && echo PASS
 ```
 Expected: `PASS` (the only `env.local` mention left is in a comment — if
 the grep fails on the comment, narrow it to `grep -q '^\[ -r .*env.local'`).
@@ -420,7 +420,7 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 
 - [ ] **Step 2: Lint**
 
-Run: `shellcheck -S info shell/aliases.sh`
+Run: `shellcheck -x -S info shell/aliases.sh`
 Expected: no output.
 
 - [ ] **Step 3: Check the escaping survived**
@@ -524,7 +524,7 @@ gifify() {
 
 - [ ] **Step 2: Lint**
 
-Run: `shellcheck -S info shell/functions.sh`
+Run: `shellcheck -x -S info shell/functions.sh`
 Expected: no output. In particular no SC2086 — that was the point.
 
 - [ ] **Step 3: Test the two behaviours that actually changed**
@@ -623,7 +623,7 @@ export PATH
 
 - [ ] **Step 3: Lint both**
 
-Run: `shellcheck -S info shell/role-workstation.sh shell/role-server.sh`
+Run: `shellcheck -x -S info shell/role-workstation.sh shell/role-server.sh`
 Expected: no output.
 
 - [ ] **Step 4: Verify no role fragment prepends to PATH**
@@ -708,7 +708,7 @@ fi
 
 - [ ] **Step 2: Lint**
 
-Run: `shellcheck -S info shell/index.sh`
+Run: `shellcheck -x -S info shell/index.sh`
 Expected: no output. `return 0` outside a function is correct in a sourced
 file; if shellcheck flags SC2317 or similar, restructure with an `else`
 branch rather than adding a disable comment (the repo forbids those).
@@ -788,7 +788,7 @@ if command -v brew >/dev/null 2>&1; then
 fi
 
 # Docker Desktop's completions, workstation only — the Mac mini runs colima.
-if [ "$MACHINE_ROLE" = "workstation" ] && [ -d "$HOME/.docker/completions" ]; then
+if [ "${MACHINE_ROLE:-}" = "workstation" ] && [ -d "$HOME/.docker/completions" ]; then
   fpath=("$HOME/.docker/completions" $fpath)
 fi
 
@@ -815,7 +815,7 @@ diff "$SCRATCH/before-zsh.txt" "$SCRATCH/after-zsh.txt"
 ```
 Expected, and **nothing else**:
 - gone: `find`, `lc`, `sniff`, `httpdump`, `undopush`, `ftp_server_start`, `ftp_server_stop`, `postgresql_server_start`, `postgresql_server_stop`, `redis_start`, `redis_stop`, `md5sum`
-- changed: `localip` (en1 → en0), `flush` (gains `killall -HUP mDNSResponder`), `stt` (sublime → subl), `BUNDLER_EDITOR` (atom → vim)
+- changed: `localip` (en1 → en0), `flush` (gains `killall -HUP mDNSResponder`), `stt` (sublime → subl), `BUNDLER_EDITOR` (atom → vim), and `ips` — it reads `print ''` today because the unescaped `$1` was consumed as the sourcing file's empty positional parameter, so perl printed whole `ifconfig` lines instead of the captured address; it now reads `print $1`
 - added: `cp_p`, `extract`, `gifify`, `server` under `### FUNCTIONS` — zsh never had them
 - `### PATH`: no duplicates left, libxml2/libxslt/libiconv and heroku gone
 Any other line is a regression. Investigate before continuing.
@@ -878,16 +878,23 @@ loader — sources it, because it sets `PS1` and is bash-only.
 # The one real bash file. ~/.bash_profile is a stub that sources this, so
 # login and non-login interactive shells both end up here.
 
-# Nothing below is useful to a non-interactive shell, and a script with a
-# shebang never reads this file anyway.
+# Everything shared with zsh: PATH, exports, aliases, functions, the role
+# fragment and ~/.env.local. See shell/index.sh for the order.
+#
+# This sits ABOVE the interactive guard on purpose. .bash_profile is read by
+# every login shell, interactive or not, and used to set PATH unconditionally
+# — verified 2026-09-15: `HOME=<sandbox> bash -lc` sees the asdf shims today.
+# Now that .bash_profile only delegates here, guarding this line would drop
+# PATH, exports, aliases and functions for `bash -lc`. The fingerprint harness
+# runs -lic and would never catch it.
+. "${DOTFILES:-$HOME/.dotfiles}/shell/index.sh"
+
+# Nothing below is useful to a non-interactive shell: a prompt it never
+# renders, completions it never offers.
 case $- in
   *i*) ;;
   *) return ;;
 esac
-
-# Everything shared with zsh: PATH, exports, aliases, functions, the role
-# fragment and ~/.env.local. See shell/index.sh for the order.
-. "${DOTFILES:-$HOME/.dotfiles}/shell/index.sh"
 
 # PS1. bash-only, so it is not in the shared loader.
 . "${DOTFILES:-$HOME/.dotfiles}/shell/bash-prompt.sh"
@@ -921,6 +928,20 @@ rm -rf "$d"
 Expected: two `ok` lines. A missing one means the stub chain is broken —
 that is precisely the failure this design exists to prevent.
 
+- [ ] **Step 5a: Verify `bash -lc` still gets PATH**
+
+The harness runs `-lic`, so it cannot catch this regression. Test it directly.
+
+```bash
+d=$(mktemp -d)
+ln -s "$PWD/.bashrc" "$d/.bashrc"; ln -s "$PWD/.bash_profile" "$d/.bash_profile"
+HOME="$d" DOTFILES="$PWD" /bin/bash -lc 'case ":$PATH:" in *asdf/shims*) echo PASS;; *) echo "FAIL: bash -lc lost PATH";; esac'
+rm -rf "$d"
+```
+Expected: `PASS`. This matches today's behaviour, measured before the
+refactor — `.bash_profile` used to set PATH unconditionally for every login
+shell, interactive or not.
+
 - [ ] **Step 5: Fingerprint and diff**
 
 Run:
@@ -928,14 +949,14 @@ Run:
 "$SCRATCH/fingerprint.sh" bash "$PWD" > "$SCRATCH/after-bash.txt"
 diff "$SCRATCH/before-bash.txt" "$SCRATCH/after-bash.txt"
 ```
-Expected: the same removals and fixes as Task 8, plus these **additions**
+Expected: the same removals and fixes as Task 8 (`ips` included), plus these **additions**
 that bash never had: `HOMEBREW_NO_ANALYTICS`, `LANG`, `LC_ALL`, `LC_CTYPE`,
 `RUBY_CONFIGURE_OPTS`, and the `k8s-scaleway` / `k8s-staging` aliases.
 Nothing else.
 
 - [ ] **Step 6: Lint everything**
 
-Run: `shellcheck -S info shell/*.sh`
+Run: `shellcheck -x -S info shell/*.sh`
 Expected: no output. `.bashrc`, `.bash_profile` and `.zshrc` are not linted
 — they have no shebang, and `.claude/hooks/shellcheck-on-write.sh` skips
 them deliberately.
@@ -1124,7 +1145,7 @@ Also mark the `configure_dotfiles.sh` backup task done — Task 10 fixed it.
 - [ ] **Step 5: Full verification, both shells, both roles**
 
 ```bash
-shellcheck -S info shell/*.sh configure_dotfiles.sh dotfiles-lib.sh
+shellcheck -x -S info shell/*.sh configure_dotfiles.sh dotfiles-lib.sh
 bash -n install-deps.sh
 ./clean-mac.sh --dry-run > /dev/null && echo "clean-mac ok"
 for s in zsh bash; do

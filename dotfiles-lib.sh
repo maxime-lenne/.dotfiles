@@ -53,6 +53,11 @@ ask() {
   esac
 }
 
+# NOTE: shell/index.sh carries a deliberate copy of this rule for the
+# interactive shells, which cannot source this file (it runs tput at load
+# time and exports BOLD/GREEN/RESET, colliding with shell/bash-prompt.sh).
+# Change one, change the other.
+
 # Detects the machine role (server = Mac mini / headless server,
 # workstation = MacBook Pro / dev machine) from --server/--workstation
 # flags, the MACHINE_ROLE env var, or the hostname as a last resort.

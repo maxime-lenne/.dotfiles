@@ -4,15 +4,15 @@
 # of the shell config files this repo tracks.
 #
 # These files are symlinked into $HOME *and* committed to a public
-# GitHub repository. A token pasted into .exports is published the next
-# time anything is pushed, and rewriting history afterwards does not
+# GitHub repository. A token pasted into shell/exports.sh is published the
+# next time anything is pushed, and rewriting history afterwards does not
 # un-leak it — the only real fix is rotating the credential. So this
 # blocks before the write rather than warning after it.
 #
 # What it allows, deliberately: a reference. `export API_KEY="$MY_KEY"`,
 # `$(...)`, or an empty default are how a secret is *supposed* to reach
 # the shell — the value lives in .env, the one gitignored file here, linked
-# to ~/.env.local and loaded last by .exports.
+# to ~/.env.local and loaded last by shell/index.sh.
 #
 # Reads the hook payload on stdin, writes a deny verdict on stdout.
 #
@@ -32,9 +32,22 @@ file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
 # is precisely where a real value gets pasted by mistake. Anything else in
 # the repo — scripts, docs, skills — is out of scope: this guards the files
 # that get both published and sourced at login.
-case "$(basename "$file")" in
-  .exports|.aliases|.functions|.zshrc|.bashrc|.bash_profile|.bash_prompt|.gitconfig|.env.example) ;;
-  *) exit 0 ;;
+#
+# Path-matched for shell/*.sh (added 2026-09-15): .exports, .aliases,
+# .functions and .bash_prompt moved there and stopped matching the
+# basename list below, which silently disarmed the guard for every one of
+# them — the same config this hook has always protected, under a new
+# path. The old basenames are kept in the list rather than dropped: a
+# stale entry costs nothing, and configure_dotfiles.sh only removes ITS
+# OWN symlinks at those names, not a real file a machine still has there.
+case "$file" in
+  */shell/*.sh) ;;
+  *)
+    case "$(basename "$file")" in
+      .exports|.aliases|.functions|.zshrc|.bashrc|.bash_profile|.bash_prompt|.gitconfig|.env.example) ;;
+      *) exit 0 ;;
+    esac
+    ;;
 esac
 
 # Write carries the whole file in `content`; Edit carries only the
@@ -46,8 +59,17 @@ payload=$(printf '%s' "$input" | jq -r '.tool_input.content // .tool_input.new_s
 # An assignment whose *name* looks like a credential and whose value is
 # a literal. Anchoring on the assignment keeps prose and comments out of
 # it: a line mentioning "password" is not a leak.
+#
+# The prefix before the keyword is `[A-Za-z0-9_]*` (was
+# `[A-Za-z_][A-Za-z0-9_]*` — fixed 2026-09-15, closing the docs/TASKs.md
+# entry recorded the same day): the old version required at least one
+# character before the keyword, so a bare `API_KEY=`, `TOKEN=` or
+# `SECRET=` — the three likeliest names to actually get pasted, since
+# they're what most services' docs tell you to export — had nothing to
+# match that group and slipped through, while `MY_API_KEY` or `GH_TOKEN`
+# were caught. A disarmed check on a public repo is not a follow-up.
 hits=$(printf '%s\n' "$payload" \
-  | grep -inE '^[[:space:]]*(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|CREDENTIALS?)[A-Za-z0-9_]*=' \
+  | grep -inE '^[[:space:]]*(export[[:space:]]+)?[A-Za-z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|CREDENTIALS?)[A-Za-z0-9_]*=' \
   | grep -vE '=[[:space:]]*("?\$|`|"")' \
   || true)
 
@@ -57,6 +79,6 @@ jq -n --arg file "$file" --arg hits "$hits" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "deny",
-    permissionDecisionReason: ("Refus d écriture : ce qui ressemble à un secret en clair irait dans " + $file + ". Les fichiers de config shell de ce dépôt sont publiés sur GitHub, et ~/ n en contient que des liens symboliques — écrire par l un ou l autre chemin revient au même. Une fois poussé, réécrire l historique ne dé-fuite rien : il faut faire tourner la clé.\n\nLignes en cause :\n" + $hits + "\nÉcris plutôt une référence : export MA_CLE=\"$MA_CLE\", la valeur restant dans un fichier local non versionné (~/.env.local, chargé en dernier par .exports, lui-même sourcé par bash et zsh). Si c est un faux positif, dis-le et l utilisateur pourra écrire la ligne lui-même.")
+    permissionDecisionReason: ("Refus d écriture : ce qui ressemble à un secret en clair irait dans " + $file + ". Les fichiers de config shell de ce dépôt sont publiés sur GitHub, et ~/ n en contient que des liens symboliques — écrire par l un ou l autre chemin revient au même. Une fois poussé, réécrire l historique ne dé-fuite rien : il faut faire tourner la clé.\n\nLignes en cause :\n" + $hits + "\nÉcris plutôt une référence : export MA_CLE=\"$MA_CLE\", la valeur restant dans un fichier local non versionné (~/.env.local, chargé en dernier par shell/index.sh, lui-même sourcé par bash et zsh). Si c est un faux positif, dis-le et l utilisateur pourra écrire la ligne lui-même.")
   }
 }'

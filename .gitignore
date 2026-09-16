@@ -59,3 +59,6 @@ coverage/
 
 # git worktrees created by Claude Code (EnterWorktree)
 .claude/worktrees/
+
+# superpowers SDD workspace (ledger, briefs, review packages)
+.superpowers/
