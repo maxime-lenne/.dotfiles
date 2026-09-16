@@ -4,18 +4,46 @@
 # Sourced by shell/index.sh under both bash 3.2 and zsh, so: no arrays
 # (0-indexed in bash, 1-indexed in zsh), no [[ ]], no bashisms.
 
-# Add a directory to PATH unless it is already there.
+# Strip every occurrence of a directory from PATH.
 #
-# Without the guard, every nested shell re-prepends what its parent
-# exported. Measured 2026-09-15 on a plain login zsh: 12 duplicated
-# entries, including ./bin and the asdf shims.
-path_prepend() {
-  case ":${PATH}:" in
-    *":$1:"*) ;;
-    *) PATH="$1${PATH:+:$PATH}" ;;
-  esac
+# Written without `IFS=: ; for dir in $PATH` on purpose: unquoted expansion
+# word-splits in bash but NOT in zsh, where SH_WORD_SPLIT is off by default.
+# The ${x%%:*} / ${x#*:} walk below behaves identically in both.
+path_remove() {
+  local rest="$PATH" out="" dir
+  while [ -n "$rest" ]; do
+    dir="${rest%%:*}"
+    if [ "$rest" = "$dir" ]; then rest=""; else rest="${rest#*:}"; fi
+    [ "$dir" = "$1" ] && continue
+    out="${out:+$out:}$dir"
+  done
+  PATH="$out"
 }
 
+# Move a directory to the front of PATH, removing any earlier occurrence.
+#
+# It *moves* rather than skipping-if-present, and that distinction is the
+# whole point. A skip-if-present version shipped on 2026-09-15 and was
+# wrong: macOS runs path_helper from /etc/profile, which rebuilds PATH with
+# /etc/paths (/usr/bin, /bin...) at the FRONT, keeping the inherited entries
+# after them. So in any login shell started from an already-configured one —
+# `bash -lc`, tmux, and above all the `reload` alias, which is `exec $SHELL
+# -l` — the shims were already "in PATH", the prepend skipped, and /usr/bin
+# stayed ahead of them. `ruby` silently became /usr/bin/ruby, Apple's 2.6,
+# instead of the asdf version. That breaks this repo's hard constraint the
+# moment you reload your shell after editing it.
+#
+# Removing first also collapses the duplicates the pre-2026-09-15 config
+# accumulated — 12 of them in a plain login zsh — so this keeps the
+# deduplication that skip-if-present was introduced for, without trading
+# away the ordering guarantee.
+path_prepend() {
+  path_remove "$1"
+  PATH="$1${PATH:+:$PATH}"
+}
+
+# Appending is about availability, not priority, so an entry already present
+# is left exactly where it is.
 path_append() {
   case ":${PATH}:" in
     *":$1:"*) ;;

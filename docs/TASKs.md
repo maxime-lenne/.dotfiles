@@ -88,3 +88,12 @@ Tu veux que je t'aide à mettre ça en place ?
   d'un projet tombe sur `/usr/bin/rails`, le stub Apple en `#!/usr/bin/ruby`,
   et l'alias `lc` reste inactif. Relancer la section Ruby d'`install-deps.sh`
   puis `asdf reshim ruby`.
+
+- `~/.zprofile` n'est pas géré par ce dépôt et modifie quand même le `PATH` :
+  il ajoute `~/.docker/bin` (Docker Desktop) et, ligne 9, un second
+  `/usr/local/bin` que `path_helper` avait déjà mis — seul doublon de `PATH`
+  qui subsiste après le refacto du 2026-09-15 (il y en avait 12 avant).
+  Comme zsh lit `.zprofile` avant `.zshrc`, `shell/path.sh` ne peut pas
+  l'empêcher. Décider : soit l'absorber dans le dépôt et le symlinker comme
+  les autres, soit le vider puisque `shell/role-workstation.sh` gère déjà
+  `~/.docker/bin`. Constaté le 2026-09-16.
