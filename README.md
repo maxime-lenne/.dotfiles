@@ -6,37 +6,47 @@
 
 Before using these dotfiles project, make sure you have:
 
-1. **Git installed** (without Homebrew):
+1. **Git installed** (without Homebrew, MacOS):
+
+   [git installation](https://git-scm.com/install/mac)
+   
    ```bash
-   # Download the latest Git for macOS installer
-   curl -O https://sourceforge.net/projects/git-osx-installer/files/git-2.33.0-intel-universal-mavericks.dmg
-
-   # Mount the disk image
-   hdiutil attach git-2.33.0-intel-universal-mavericks.dmg
-
-   # Install the package
-   sudo installer -pkg /Volumes/Git\ 2.33.0\ Mavericks\ Intel\ Universal/git-2.33.0-intel-universal-mavericks.pkg -target /
-
-   # Unmount the disk image
-   hdiutil detach /Volumes/Git\ 2.33.0\ Mavericks\ Intel\ Universal/
+   # Xcode Command Line Tools
+   # Apple ships a binary package of Git with Xcode Command Line Tools. You can install this via:
+   xcode-select --install
    ```
 
-2. **GitHub SSH connection configured**:
+2. ** Generate GitHub SSH key**:
    ```bash
    # Generate SSH key
    ssh-keygen -f ~/.ssh/github -t ed25519 -C "your_email@example.com"
 
-   # Start the ssh-agent in the background
-   eval "$(ssh-agent -s)"
-
-   # Add your SSH key to the ssh-agent
-   ssh-add ~/.ssh/github
-
    # Copy the SSH key to your clipboard
-   pbcopy < ~/.ssh/github.pub
+   pbcopy < ~/.ssh/github.pub  
    ```
 
-   Then add the SSH key to your GitHub account:
+ 3. Open your ~/.ssh/config file, and add :
+   
+   ```bash
+   Host github.com
+     AddKeysToAgent yes
+     UseKeychain yes
+     IdentityFile ~/.ssh/github
+   ```
+
+   ```bash
+   # Start the ssh-agent in the background
+   eval "$(ssh-agent -s)"
+   ```
+
+ 4. Add SSH key to agent
+   
+   ```bash
+   ssh-add --apple-use-keychain ~/.ssh/github
+   ```
+
+ 5. Add SSH key to your GitHub account:
+   
    1. Go to GitHub → Settings → SSH and GPG keys
    2. Click "New SSH key"
    3. Paste your key and save
