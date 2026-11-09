@@ -432,6 +432,9 @@ if ask_to_install "AI applications"; then
   echo "Installing AI apps: Ollama, cursor..."
 
   install_or_upgrade "--cask" "ollama-app"
+  # Since late 2026 this cask ships the Codex-based ChatGPT.app
+  # (com.openai.codex); the former app lives on separately as
+  # "ChatGPT Classic" (com.openai.chat) and is not installed here.
   install_or_upgrade "--cask" "chatgpt"
   install_or_upgrade "--cask" "claude"
   install_or_upgrade "--cask" "lm-studio"

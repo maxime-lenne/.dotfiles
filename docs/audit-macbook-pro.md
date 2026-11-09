@@ -109,6 +109,11 @@ Installés hors de tout gestionnaire de paquets : ni Homebrew ni
 - **Claude Code CLI** (+ son **Claude Code URL Handler.app** auto-généré) — reste hors Homebrew **délibérément** : le cask poserait un second binaire, plus ancien, à un autre chemin. Voir item 11.
 - **IDE JetBrains** (WebStorm, PyCharm, RubyMine, DataGrip, dans `~/Applications`) — gérés par JetBrains Toolbox, lui-même un cask.
 - **Téléchargements directs** : GitHub Copilot.app, Fireflies, Paper, Pencil, ChatGPT Classic.app.
+  *2026-11-09 : `ChatGPT Classic.app` (`com.openai.chat`, 1.2026.184,
+  figée depuis juillet) est l'ancienne app, renommée par OpenAI. Le cask
+  `chatgpt` installe désormais une autre app — `ChatGPT.app`, bâtie sur
+  Codex (`com.openai.codex`). Cask réinstallé ce jour (26.1103.60933) ;
+  Classic est laissée en place, à retirer une fois la nouvelle adoptée.*
 - **Utilitaires constructeur** : DDPM (Dell Display and Peripheral Manager — pilote le U4025QW, KVM compris), Logi Options+ / LogiPluginService, Nanoleaf Desktop, Reachy Mini Control.
 - **Ne sont pas des installs** : Google Docs/Sheets/Slides sont des raccourcis PWA générés par Chrome. GPG Keychain.app est un composant du cask `gpg-suite`, posé par son `.pkg` — il ressort ici parce qu'un cask `.pkg` ne déclare aucun artefact `app:`.
 
@@ -339,6 +344,10 @@ brew install --cask --force cloudflare-warp google-drive logi-options+
     appartiennent à cette famille : ce sont des outils qu'on ne lance
     plus assez pour les tenir à jour, mais assez installés pour qu'ils
     se mettent à jour tout seuls.*
+
+    *2026-11-09 : le cask `chatgpt` est de nouveau installé (voir
+    « Téléchargements directs ») — « ×2 states » devient deux apps
+    distinctes, `ChatGPT.app` (cask) et `ChatGPT Classic.app` (à la main).*
 11. **Dix apps installées à la main alors qu'un cask existe** —
     **six adoptées le 2026-09-01, trois en attente, une abandonnée.**
 
