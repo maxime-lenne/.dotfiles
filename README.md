@@ -276,7 +276,9 @@ right amount of tooling isn't the same everywhere:
   should carry the minimum footprint needed to run things: no GUI
   apps, no Docker Desktop (prefer `colima` + the `docker` CLI — same
   daemon, no GUI overhead), no IDEs, no legacy version managers left
-  over from when it was still a dev machine. `clean-mac.sh` detects
+  over from when it was still a dev machine. Local models are served by
+  vLLM (`uv tool`, Metal backend via `vllm-metal`) rather than
+  Ollama.app; browsers are limited to Brave and Chrome (2026-11-07). `clean-mac.sh` detects
   this machine (by hostname) and switches to more assertive
   recommendations — see below.
 - **Linux servers (Raspberry Pi, Scaleway VPS, Docker containers).**
@@ -341,6 +343,7 @@ What it can clean, section by section:
 - **Docker Desktop**: stopped containers, unused networks and dangling images (`docker system prune`), optionally *all* unused images and volumes (more aggressive, can delete data from unmounted volumes), and the build cache (`docker builder prune`).
 - **JetBrains** (WebStorm, PyCharm, DataGrip, RubyMine, Toolbox...): the IDEs' indexing cache (`~/Library/Caches/JetBrains`, rebuilt automatically on next open) and logs (`~/Library/Logs/JetBrains`). Toolbox's old IDE version archives are only reported (size + where to configure retention), never deleted automatically.
 - **Ollama**: downloaded models, asked one by one by name and size (deleting one means re-pulling it later), plus its logs.
+- **vLLM**: models in the Hugging Face cache (`~/.cache/huggingface/hub`, shared with transformers/mlx-lm), asked one by one by name and size.
 - **uv**: the Python package cache (`uv cache clean`).
 - **bun**: the package cache (`~/.bun/install/cache`).
 - **Legacy version managers** (`pyenv`, `nvm`, `rvm`): detects leftover installs and offers to remove each one *completely* (not just its cache), since they're superseded by asdf/uv/bun — see [Package managers](#package-managers).

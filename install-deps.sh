@@ -183,10 +183,16 @@ if ask_to_install "Ruby and Rails (via asdf)"; then
   gem install colorls
 fi
 
-if ask_to_install "Elixir"; then
-  install_or_upgrade "elixir"
-  mix local.hex
-  mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_new.ez
+# Elixir : poste de dev uniquement. Retiré du Mac mini le 2026-11-07,
+# aucun service qu'il héberge ne tourne sur la BEAM.
+if [ "$MACHINE_ROLE" = "workstation" ]; then
+  if ask_to_install "Elixir"; then
+    install_or_upgrade "elixir"
+    mix local.hex
+    mix archive.install https://github.com/phoenixframework/archives/raw/master/phx_new.ez
+  fi
+else
+  echo "Server role: skipping Elixir (no BEAM service on the server)."
 fi
 
 if ask_to_install "PHP Composer"; then
@@ -429,23 +435,40 @@ fi
 
 if ask_to_install "AI applications"; then
   echo "------------------------------"
-  echo "Installing AI apps: Ollama, cursor..."
+  echo "Installing AI apps: Ollama or vLLM, Claude, Codex..."
 
-  install_or_upgrade "--cask" "ollama-app"
+  # Runtimes de modèles locaux en GUI et éditeurs IA : poste de dev
+  # uniquement. Le Mac mini les a perdus le 2026-11-07 — il sert ses
+  # modèles via vLLM (ci-dessous) au lieu d'Ollama.app/LM Studio, et
+  # n'héberge plus d'IDE.
+  if [ "$MACHINE_ROLE" = "workstation" ]; then
+    install_or_upgrade "--cask" "ollama-app"
+    install_or_upgrade "--cask" "lm-studio"
+    install_or_upgrade "--cask" "cursor"
+    install_or_upgrade "--cask" "antigravity"
+  else
+    if ask_to_install "vLLM (headless OpenAI-compatible model server, Metal backend)"; then
+      # Remplace ollama-app sur le Mac mini depuis le 2026-11-07 : un
+      # serveur OpenAI-compatible sans app de barre de menus. Absent de
+      # Homebrew, et vllm ne publie que des wheels Linux : sur macOS, uv
+      # le compile depuis le sdist (backend CPU, plusieurs minutes).
+      # vllm-metal y branche le backend MLX/Metal ; il n'existe qu'en
+      # wheel cp312 macOS arm64, d'où le Python épinglé. Les modèles
+      # atterrissent dans le cache Hugging Face (~/.cache/huggingface).
+      uv tool install --python 3.12 --with vllm-metal vllm || echo "  ! uv tool install vllm failed — skipping"
+    fi
+  fi
   # Since late 2026 this cask ships the Codex-based ChatGPT.app
   # (com.openai.codex); the former app lives on separately as
   # "ChatGPT Classic" (com.openai.chat) and is not installed here.
   install_or_upgrade "--cask" "chatgpt"
   install_or_upgrade "--cask" "claude"
-  install_or_upgrade "--cask" "lm-studio"
   install_or_upgrade "aider"
   install_or_upgrade "--cask" "claude-code"
   install_or_upgrade "--cask" "codex"
   install_or_upgrade "--cask" "codexbar"
   install_or_upgrade "portaudio"
-  install_or_upgrade "--cask" "cursor"
   install_or_upgrade "--cask" "copilot-cli"
-  install_or_upgrade "--cask" "antigravity"
   # Formules de tap, mêmes réserves d'inventaire que supabase ci-dessus.
   brew tap anomalyco/tap 2>/dev/null
   install_or_upgrade "anomalyco/tap/opencode"
@@ -463,11 +486,19 @@ if ask_to_install "miscellaneous applications"; then
   echo "------------------------------"
   echo "Installing Misc apps: browsers, communication tools, productivity apps..."
 
-  if ask_to_install "Web browsers (Chrome, Firefox)"; then
-    install_or_upgrade "--cask" "arc"
+  if ask_to_install "Web browsers (Chrome, plus Brave on a server, Arc/Firefox/Edge on a workstation)"; then
     install_or_upgrade "--cask" "google-chrome"
-    install_or_upgrade "--cask" "firefox"
-    install_or_upgrade "--cask" "microsoft-edge"
+    # Serveur : Brave + Chrome seulement (décidé le 2026-11-07), de quoi
+    # ouvrir une interface d'admin web ; Arc, Firefox et Edge ont été
+    # désinstallés du Mac mini le même jour. brave-browser y était déjà
+    # installé sans être déclaré ici.
+    if [ "$MACHINE_ROLE" = "server" ]; then
+      install_or_upgrade "--cask" "brave-browser"
+    else
+      install_or_upgrade "--cask" "arc"
+      install_or_upgrade "--cask" "firefox"
+      install_or_upgrade "--cask" "microsoft-edge"
+    fi
   fi
 
   if ask_to_install "Communication tools (Slack, Gitter, Discord)"; then
@@ -475,8 +506,12 @@ if ask_to_install "miscellaneous applications"; then
     # install_or_upgrade "--cask" "gitter"
     install_or_upgrade "--cask" "discord"
     install_or_upgrade "--cask" "telegram"
-    install_or_upgrade "--cask" "zoom"
-    install_or_upgrade "--cask" "microsoft-teams"
+    # Visio : poste de dev uniquement, retirées du Mac mini le 2026-11-07
+    # (pas d'appel passé depuis un serveur headless).
+    if [ "$MACHINE_ROLE" = "workstation" ]; then
+      install_or_upgrade "--cask" "zoom"
+      install_or_upgrade "--cask" "microsoft-teams"
+    fi
   fi
 
   if ask_to_install "Design tools (Figma)"; then
@@ -486,7 +521,10 @@ if ask_to_install "miscellaneous applications"; then
   if ask_to_install "Note-taking and productivity apps (Typora, Notion, Miro)"; then
     install_or_upgrade "--cask" "typora"
     install_or_upgrade "--cask" "notion"
-    install_or_upgrade "--cask" "miro"
+    # Miro : poste de dev uniquement depuis le 2026-11-07.
+    if [ "$MACHINE_ROLE" = "workstation" ]; then
+      install_or_upgrade "--cask" "miro"
+    fi
     install_or_upgrade "--cask" "google-drive"
     install_or_upgrade "--cask" "superwhisper"
     # install_or_upgrade "asana"
@@ -504,14 +542,18 @@ if ask_to_install "miscellaneous applications"; then
   fi
 
 
-  if ask_to_install "Hardware vendor utilities (Nanoleaf, Logi Options+)"; then
-    # Pilotent du matériel physique : les installer sur une machine qui
-    # n'a pas le périphérique correspondant n'a aucun intérêt, d'où le
-    # prompt séparé. logi-options+ pose aussi un service en arrière-plan
-    # (LogiPluginService) et son cask passe par un installeur : il
-    # demandera un mot de passe administrateur.
-    install_or_upgrade "--cask" "nanoleaf"
-    install_or_upgrade "--cask" "logi-options+"
+  # Pilotent du matériel physique : les installer sur une machine qui
+  # n'a pas le périphérique correspondant n'a aucun intérêt, d'où le
+  # prompt séparé — et le serveur, qui n'a ni clavier/souris Logitech ni
+  # lumières à piloter, ne les propose plus depuis le 2026-11-07.
+  # logi-options+ pose aussi un service en arrière-plan
+  # (LogiPluginService) et son cask passe par un installeur : il
+  # demandera un mot de passe administrateur.
+  if [ "$MACHINE_ROLE" = "workstation" ]; then
+    if ask_to_install "Hardware vendor utilities (Nanoleaf, Logi Options+)"; then
+      install_or_upgrade "--cask" "nanoleaf"
+      install_or_upgrade "--cask" "logi-options+"
+    fi
   fi
 
   if ask_to_install "Cloudflare WARP (client VPN)"; then

@@ -231,6 +231,32 @@ else
 fi
 
 # ------------------------------------------------------------------
+# vLLM (modèles du cache Hugging Face)
+# ------------------------------------------------------------------
+section "vLLM (modèles Hugging Face)"
+HF_HUB_DIR="${HF_HOME:-$HOME/.cache/huggingface}/hub"
+if [ -d "$HF_HUB_DIR" ]; then
+  # vLLM remplace Ollama sur le Mac mini depuis le 2026-11-07. Il n'a pas
+  # de 'rm' à lui : ses modèles sont de simples dossiers du cache
+  # Hugging Face, partagé avec transformers/mlx-lm, d'où le prompt un à un.
+  explain "vLLM télécharge ses modèles dans le cache Hugging Face ($HF_HUB_DIR), un dossier par modèle, partagé avec transformers et mlx-lm. Un modèle supprimé sera re-téléchargé au prochain 'vllm serve'."
+  found_model=false
+  for model_dir in "$HF_HUB_DIR"/models--*; do
+    [ -d "$model_dir" ] || continue
+    found_model=true
+    name=$(basename "$model_dir" | sed -e 's/^models--//' -e 's/--/\//')
+    before=$(dir_size_kb "$model_dir")
+    if ask_to_clean "le modèle '$name' ($(kb_to_human "$before"))"; then
+      run rm -rf "${model_dir:?}"
+      report_freed "Modèle $name" "$before" "$model_dir"
+    fi
+  done
+  $found_model || skipped "aucun modèle dans le cache Hugging Face"
+else
+  skipped "aucun cache Hugging Face ($HF_HUB_DIR)"
+fi
+
+# ------------------------------------------------------------------
 # uv
 # ------------------------------------------------------------------
 section "uv (package manager Python)"
