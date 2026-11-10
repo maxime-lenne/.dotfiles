@@ -375,3 +375,12 @@ not usage documentation for this repo:
   workstation: a large footprint is expected, so the findings are
   about drift and hygiene (manual installs, tools installed twice,
   declared stack vs. actual stack, disk pressure).
+
+## Services I use daily
+
+- **[Google Workspace](https://sharegoogleworkspace.advocate.impact.com/mzZoVRs)**
+  *(referral link)* — business email on your own domain
+  (`info@yourdomain.com`), 30 GB of online storage with offline access,
+  advanced security and admin controls, 24/5 phone/email support and a
+  99% uptime guarantee. Signing up through this link gets **10% off the
+  first year** with my promotion code — ask me for it.
