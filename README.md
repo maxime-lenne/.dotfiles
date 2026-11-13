@@ -91,7 +91,7 @@ that moved; the four obsolete links simply dangle. Running it is cleanup,
 not a prerequisite.
 
 ```bash
-cd ~/.dotfiles
+cd ~/Documents_non_icloud/workspace_devops/.dotfiles
 git checkout master && git pull
 ./configure_dotfiles.sh
 ```
@@ -126,7 +126,7 @@ If something is wrong, the shell you started from is still open and still
 working. The way back:
 
 ```bash
-cd ~/.dotfiles && git checkout <previous-commit> && ./configure_dotfiles.sh
+cd ~/Documents_non_icloud/workspace_devops/.dotfiles && git checkout <previous-commit> && ./configure_dotfiles.sh
 ```
 
 ## Shell configuration (`shell/`)

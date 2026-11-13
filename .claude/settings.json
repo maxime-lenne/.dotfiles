@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR:-$HOME/.dotfiles}/.claude/hooks/no-plaintext-secrets.sh\"",
+            "command": "\"${CLAUDE_PROJECT_DIR:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}/.claude/hooks/no-plaintext-secrets.sh\"",
             "timeout": 10,
             "statusMessage": "Vérification des secrets en clair..."
           }
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR:-$HOME/.dotfiles}/.claude/hooks/shellcheck-on-write.sh\"",
+            "command": "\"${CLAUDE_PROJECT_DIR:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}/.claude/hooks/shellcheck-on-write.sh\"",
             "timeout": 30,
             "statusMessage": "shellcheck..."
           }

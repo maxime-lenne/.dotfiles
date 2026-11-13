@@ -10,7 +10,7 @@
 # Constraint: bash 3.2 and zsh both read this file. No arrays (0-indexed in
 # bash, 1-indexed in zsh), no [[ ]], no bashisms, no zshisms.
 
-DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
+DOTFILES="${DOTFILES:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}"
 
 if [ ! -d "$DOTFILES/shell" ]; then
   echo "dotfiles: $DOTFILES/shell not found — shell configuration not loaded" >&2

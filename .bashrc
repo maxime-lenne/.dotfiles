@@ -10,7 +10,7 @@
 # Now that .bash_profile only delegates here, guarding this line would drop
 # PATH, exports, aliases and functions for `bash -lc`. The fingerprint harness
 # runs -lic and would never catch it.
-. "${DOTFILES:-$HOME/.dotfiles}/shell/index.sh"
+. "${DOTFILES:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}/shell/index.sh"
 
 # Nothing in this block is useful to a non-interactive shell: a prompt it
 # never renders, completions it never offers. This used to be an early
@@ -25,7 +25,7 @@ esac
 
 if [ "$_dotfiles_interactive" = true ]; then
   # PS1. bash-only, so it is not in the shared loader.
-  . "${DOTFILES:-$HOME/.dotfiles}/shell/bash-prompt.sh"
+  . "${DOTFILES:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}/shell/bash-prompt.sh"
 
   # --- Completions (bash-specific; the zsh halves live in .zshrc) ---
 

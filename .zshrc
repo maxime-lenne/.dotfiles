@@ -1,5 +1,5 @@
 ZSH=$HOME/.oh-my-zsh
-ZSH_CUSTOM="${DOTFILES:-$HOME/.dotfiles}/custom"
+ZSH_CUSTOM="${DOTFILES:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}/custom"
 
 # You can change the theme with another one:
 #   https://github.com/robbyrussell/oh-my-zsh/wiki/themes
@@ -13,7 +13,7 @@ source "${ZSH}/oh-my-zsh.sh"
 
 # Everything shared with bash: PATH, exports, aliases, functions, the role
 # fragment and ~/.env.local. See shell/index.sh for the order.
-. "${DOTFILES:-$HOME/.dotfiles}/shell/index.sh"
+. "${DOTFILES:-$HOME/Documents_non_icloud/workspace_devops/.dotfiles}/shell/index.sh"
 
 # AFTER index.sh: undoes the interactive `rm -i` that oh-my-zsh's
 # common-aliases plugin installs. Run any earlier and the plugin would just
