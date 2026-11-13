@@ -244,8 +244,13 @@ if ask_to_install "HashiCorp tools (Vault)"; then
   install_or_upgrade "hashicorp/tap/vault"
 fi
 
-if ask_to_install "Docker Desktop, Ansible, and Terraform"; then
-  install_or_upgrade "--cask" "docker-desktop"
+if ask_to_install "Ansible and Terraform (plus Docker Desktop on a workstation)"; then
+  # Docker Desktop : poste de dev uniquement. Retiré du Mac mini le
+  # 2026-11-10 (il était vide : ni conteneur, ni volume, ni image) au
+  # profit de colima, ci-dessous.
+  if [ "$MACHINE_ROLE" = "workstation" ]; then
+    install_or_upgrade "--cask" "docker-desktop"
+  fi
   install_or_upgrade "ansible"
   brew tap hashicorp/tap
   install_or_upgrade "hashicorp/tap/terraform"
@@ -254,6 +259,15 @@ fi
 if ask_to_install "colima and the docker CLI (Docker Desktop alternative — same daemon, no GUI, preferred on the Mac mini server)"; then
   install_or_upgrade "colima"
   install_or_upgrade "docker"
+  # Ce que Docker Desktop fournissait en plus du démon : les plugins
+  # `docker compose` / `docker buildx` et un credsStore. Sans eux, un
+  # ~/.docker/config.json hérité de Desktop ("credsStore": "desktop")
+  # casse `docker pull`/`login`. Il faut aussi, dans ce fichier :
+  #   "credsStore": "osxkeychain",
+  #   "cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]
+  install_or_upgrade "docker-compose"
+  install_or_upgrade "docker-buildx"
+  install_or_upgrade "docker-credential-helper"
 fi
 
 if ask_to_install "Kubernetes tools (kubectl, helm, k9s, kind, kubeseal)"; then
@@ -486,15 +500,17 @@ if ask_to_install "miscellaneous applications"; then
   echo "------------------------------"
   echo "Installing Misc apps: browsers, communication tools, productivity apps..."
 
-  if ask_to_install "Web browsers (Chrome, plus Brave on a server, Arc/Firefox/Edge on a workstation)"; then
+  if ask_to_install "Web browsers (Brave, Chrome, plus Arc/Firefox/Edge on a workstation)"; then
+    # Brave est le navigateur par défaut de toutes les machines depuis le
+    # 2026-11-10. macOS ne laisse pas un script choisir le navigateur par
+    # défaut sans confirmation : Brave pose la question lui-même, via
+    # Réglages > Bureau et Dock > Navigateur web par défaut au besoin.
+    install_or_upgrade "--cask" "brave-browser"
     install_or_upgrade "--cask" "google-chrome"
     # Serveur : Brave + Chrome seulement (décidé le 2026-11-07), de quoi
     # ouvrir une interface d'admin web ; Arc, Firefox et Edge ont été
-    # désinstallés du Mac mini le même jour. brave-browser y était déjà
-    # installé sans être déclaré ici.
-    if [ "$MACHINE_ROLE" = "server" ]; then
-      install_or_upgrade "--cask" "brave-browser"
-    else
+    # désinstallés du Mac mini le même jour.
+    if [ "$MACHINE_ROLE" = "workstation" ]; then
       install_or_upgrade "--cask" "arc"
       install_or_upgrade "--cask" "firefox"
       install_or_upgrade "--cask" "microsoft-edge"
